@@ -44,11 +44,6 @@ import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -59,9 +54,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -244,7 +246,13 @@ public class Camera2BasicFragment extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+
+            // Orientation
+            int rotation = getActivity().getWindowManager().getDefaultDisplay().getRotation();
+
+            Image next = reader.acquireNextImage();
+            mFaceDetector.detect(next, getOrientation(rotation));
+            //mBackgroundHandler.post(new ImageSaver(next, mFile));
         }
 
     };
@@ -419,6 +427,8 @@ public class Camera2BasicFragment extends Fragment
         return new Camera2BasicFragment();
     }
 
+    private FacialFeaturesDetector mFaceDetector;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -430,6 +440,7 @@ public class Camera2BasicFragment extends Fragment
         view.findViewById(R.id.picture).setOnClickListener(this);
         view.findViewById(R.id.info).setOnClickListener(this);
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
+        mFaceDetector = new FacialFeaturesDetector(getContext());
     }
 
     @Override
@@ -521,10 +532,10 @@ public class Camera2BasicFragment extends Fragment
 
                 // For still image captures, we use the largest available size.
                 Size largest = Collections.max(
-                        Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
+                        Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)),
                         new CompareSizesByArea());
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                        ImageFormat.JPEG, /*maxImages*/2);
+                        ImageFormat.YUV_420_888, /*maxImages*/2);
                 mImageReader.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler);
 
@@ -772,6 +783,7 @@ public class Camera2BasicFragment extends Fragment
      */
     private void takePicture() {
 
+        //https://stackoverflow.com/questions/33127258/front-camera-in-camera2-not-capturing-image
         if (mAutoFocusSupported) {
             lockFocus();
         } else {
@@ -865,14 +877,13 @@ public class Camera2BasicFragment extends Fragment
     }
 
     /**
-     * Retrieves the JPEG orientation from the specified screen rotation.
+     * Retrieves the image orientation from the specified screen rotation.
      *
      * @param rotation The screen rotation.
-     * @return The JPEG orientation (one of 0, 90, 270, and 360)
+     * @return The image orientation (one of 0, 90, 270, and 360)
      */
     private int getOrientation(int rotation) {
         // Sensor orientation is 90 for most devices, or 270 for some devices (eg. Nexus 5X)
-        // We have to take that into account and rotate JPEG properly.
         // For devices with orientation of 90, we simply return our mapping from ORIENTATIONS.
         // For devices with orientation of 270, we need to rotate the JPEG 180 degrees.
         return (ORIENTATIONS.get(rotation) + mSensorOrientation + 270) % 360;
