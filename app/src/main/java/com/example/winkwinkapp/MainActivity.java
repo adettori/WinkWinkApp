@@ -25,16 +25,19 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.IOException;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener,
+        CompoundButton.OnCheckedChangeListener {
 
     private Button findButton;
-    private CompoundButton btSwitch;
+    private Button cameraButton;
+    private Switch btSwitch;
     private BluetoothAdapter bta;
 
     @Override
@@ -46,6 +49,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findButton = (Button) findViewById((R.id.players_button));
         findButton.setOnClickListener(this);
 
+        cameraButton = (Button) findViewById((R.id.camera_button));
+        cameraButton.setOnClickListener(this);
+
+        btSwitch = (Switch) findViewById(R.id.bt_switch);
+        btSwitch.setOnCheckedChangeListener(this);
+
         bta = BluetoothAdapter.getDefaultAdapter();
     }
 
@@ -53,13 +62,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         if(view == findButton) {
 
-
-
             if(bta.isDiscovering()) {
 
                 String myname = "it.unipi.di.sam.bttest server";
                 UUID myid = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
-                BluetoothServerSocket bss = null;
+                BluetoothServerSocket bss;
                 BluetoothSocket bs = null;
 
                 try {
@@ -72,6 +79,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 //servi(bs);
             }
+        } else if(view == cameraButton) {
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.menu_container, Camera2BasicFragment.newInstance())
+                    .commit();
         }
     }
 
@@ -97,12 +109,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     startActivityForResult(i, 1);
                 }
 
-                if(bta.isEnabled()) {
+                i = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+                startActivityForResult(i, 2);
 
-                    i = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-                    startActivityForResult(i, 2);
-                }
             }
         }
     }
+
 }

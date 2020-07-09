@@ -9,7 +9,6 @@ import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.Face;
 import com.google.mlkit.vision.face.FaceDetection;
@@ -30,7 +29,7 @@ public class FacialFeaturesDetector implements OnSuccessListener<List<Face>>, On
                 context,
                 new FaceDetectorOptions.Builder()
                         .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
-                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
                         .build());
     }
 

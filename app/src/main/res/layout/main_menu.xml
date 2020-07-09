@@ -28,10 +28,10 @@
             android:text="@string/find_players" />
 
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/camera_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Button" />
+            android:text="@string/test" />
 
     </LinearLayout>
 

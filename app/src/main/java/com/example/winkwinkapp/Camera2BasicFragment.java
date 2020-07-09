@@ -63,7 +63,6 @@ import androidx.fragment.app.Fragment;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -250,9 +249,7 @@ public class Camera2BasicFragment extends Fragment
             // Orientation
             int rotation = getActivity().getWindowManager().getDefaultDisplay().getRotation();
 
-            Image next = reader.acquireNextImage();
-            mFaceDetector.detect(next, getOrientation(rotation));
-            //mBackgroundHandler.post(new ImageSaver(next, mFile));
+            mFaceDetector.detect(reader.acquireNextImage(), getOrientation(rotation));
         }
 
     };
