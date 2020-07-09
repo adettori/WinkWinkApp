@@ -9,9 +9,12 @@
 
     <LinearLayout
         android:id="@+id/sub_container"
-        android:layout_width="229dp"
-        android:layout_height="237dp"
+        android:layout_width="205dp"
+        android:layout_height="249dp"
+        android:divider="@drawable/linear_layout_divider"
+        android:dividerPadding="500dp"
         android:orientation="vertical"
+        android:showDividers="middle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
