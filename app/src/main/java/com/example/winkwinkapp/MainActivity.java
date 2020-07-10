@@ -89,9 +89,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     protected void onActivityResult(int code, int res, Intent data) {
         super.onActivityResult(code, res, data);
-        if (code == 1) {
-            if (res == RESULT_OK) { Log.e("Blue", "Yep"); }
-            if (res == RESULT_CANCELED) { Log.e("Blue", "Nope"); }
+        if (code == 1 || code == 2) {
+            if (res == RESULT_CANCELED) { btSwitch.setChecked(false); }
         }
     }
 
@@ -100,18 +99,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if(buttonView == btSwitch) {
 
+            Intent i = new Intent();
+
             if(isChecked) {
-                Log.e("sup", "sup");
-                Intent i;
 
                 if (!bta.isEnabled()) {
-                    i = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    i.setAction(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                     startActivityForResult(i, 1);
                 }
 
-                i = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+                i.setAction(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
                 startActivityForResult(i, 2);
 
+            } else {
+
+                bta.cancelDiscovery();
             }
         }
     }
