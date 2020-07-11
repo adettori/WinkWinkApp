@@ -39,7 +39,7 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
         CompoundButton.OnCheckedChangeListener {
 
-    private static final int DISCOVERY_DURATION = 5; //Seconds
+    private static final int DISCOVERY_DURATION = 120; //Seconds
 
     private Button findButton;
     private Button cameraButton;
@@ -71,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
 
+        //Forces the synchronisation of the toggle
+        btSwitch.setChecked(false);
         if(bta.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
             btSwitch.setChecked(true);
 
@@ -99,6 +101,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 //discoverFun();
             }
+
+            //getSupportFragmentManager().beginTransaction()
+            //        .replace(R.id.sub_container, BluetoothListFragment.newInstance())
+            //        .commit();
 
         } else if(view == cameraButton) {
 
