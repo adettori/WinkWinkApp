@@ -39,7 +39,7 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
         CompoundButton.OnCheckedChangeListener {
 
-    private static final int DISCOVERY_DURATION = 120; //Seconds
+    private static final int DISCOVERY_DURATION = 5; //Seconds
 
     private Button findButton;
     private Button cameraButton;
@@ -71,9 +71,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
 
+        if(bta.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
+            btSwitch.setChecked(true);
+
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
+        filter.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
         this.registerReceiver(br, filter);
     }
 
@@ -143,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 Intent i = new Intent();
                 i.setAction(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+                i.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, DISCOVERY_DURATION);
                 startActivityForResult(i, 1);
 
             } else if (!isChecked &&
@@ -160,15 +163,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            if((Objects.equals(intent.getAction(), BluetoothAdapter.ACTION_STATE_CHANGED) &&
+            if(Objects.equals(intent.getAction(), BluetoothAdapter.ACTION_STATE_CHANGED) &&
                 intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1) ==
-                        BluetoothAdapter.STATE_OFF)
-                || Objects.equals(intent.getAction(), BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
+                        BluetoothAdapter.STATE_OFF) {
 
                 btSwitch.setChecked(false);
-            } else if(intent.getAction().equals(BluetoothAdapter.ACTION_DISCOVERY_STARTED)) {
+            } else if(Objects
+                    .equals(intent.getAction(), BluetoothAdapter.ACTION_SCAN_MODE_CHANGED)) {
 
-                btSwitch.setChecked(true);
+                if(intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, -1)
+                    != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
+
+                    btSwitch.setChecked(false);
+                else if(intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, -1)
+                    == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
+
+                    btSwitch.setChecked(true);
             }
         }
     }
