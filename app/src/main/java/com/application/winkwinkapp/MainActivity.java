@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package com.example.winkwinkapp;
+package com.application.winkwinkapp;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothServerSocket;
-import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -32,17 +30,13 @@ import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.io.IOException;
 import java.util.Objects;
-import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
         CompoundButton.OnCheckedChangeListener {
 
     private static final int DISCOVERY_DURATION = 120; //Seconds
 
-    private Button findButton;
-    private Button cameraButton;
     private Switch btSwitch;
     private BluetoothAdapter bta;
     private BluetoothReceiver br;
@@ -52,12 +46,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.main_menu);
-
-        findButton = (Button) findViewById((R.id.players_button));
-        findButton.setOnClickListener(this);
-
-        cameraButton = (Button) findViewById((R.id.camera_button));
-        cameraButton.setOnClickListener(this);
 
         btSwitch = (Switch) findViewById(R.id.bt_switch);
         btSwitch.setOnCheckedChangeListener(this);
@@ -90,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        if(view == findButton) {
+        if(view.getId() == R.id.players_button) {
 
             if(bta.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
                 Intent i = new Intent();
@@ -102,11 +90,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //discoverFun();
             }
 
-            //getSupportFragmentManager().beginTransaction()
-            //        .replace(R.id.sub_container, BluetoothListFragment.newInstance())
-            //        .commit();
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.sub_container, BluetoothListFragment.newInstance("bob", "bob"))
+                    .commit();
 
-        } else if(view == cameraButton) {
+        } else if(view.getId() == R.id.camera_button) {
 
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.menu_container, Camera2BasicFragment.newInstance())
@@ -157,8 +145,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             } else if (!isChecked &&
                     bta.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
 
+                //TODO
                 //Show toast to explain that it will stop being discoverable in x seconds
-                //Maybe add a little delay
                 btSwitch.setChecked(true);
             }
         }

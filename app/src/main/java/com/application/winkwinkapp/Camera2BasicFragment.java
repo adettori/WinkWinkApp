@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.winkwinkapp;
+package com.application.winkwinkapp;
 
 import android.Manifest;
 import android.app.Activity;
