@@ -19,7 +19,10 @@ package com.example.winkwinkapp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -37,8 +40,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Button findButton;
     private Button cameraButton;
-    private Switch btSwitch;
+    private static Switch btSwitch;
     private BluetoothAdapter bta;
+    private BluetoothReceiver br;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +60,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btSwitch.setOnCheckedChangeListener(this);
 
         bta = BluetoothAdapter.getDefaultAdapter();
+
+        br = new BluetoothReceiver();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
+        this.registerReceiver(br, filter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        this.unregisterReceiver(br);
     }
 
     @Override
@@ -103,17 +126,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             if(isChecked) {
 
-                if (!bta.isEnabled()) {
-                    i.setAction(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    startActivityForResult(i, 1);
-                }
-
                 i.setAction(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-                startActivityForResult(i, 2);
+                startActivityForResult(i, 1);
 
             } else {
 
                 bta.cancelDiscovery();
+            }
+        }
+    }
+
+    private static class BluetoothReceiver extends BroadcastReceiver {
+
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            if((intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED) &&
+                intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1) ==
+                        BluetoothAdapter.STATE_OFF)
+                ||
+                intent.getAction().equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
+
+                btSwitch.setChecked(false);
+            } else if(intent.getAction().equals(BluetoothAdapter.ACTION_DISCOVERY_STARTED)) {
+
+                btSwitch.setChecked(true);
             }
         }
     }
