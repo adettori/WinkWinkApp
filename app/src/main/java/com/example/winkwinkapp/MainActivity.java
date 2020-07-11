@@ -33,14 +33,17 @@ import android.widget.Switch;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
         CompoundButton.OnCheckedChangeListener {
 
+    private static final int DISCOVERY_DURATION = 120; //Seconds
+
     private Button findButton;
     private Button cameraButton;
-    private static Switch btSwitch;
+    private Switch btSwitch;
     private BluetoothAdapter bta;
     private BluetoothReceiver br;
 
@@ -85,23 +88,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         if(view == findButton) {
 
-            if(bta.isDiscovering()) {
+            if(bta.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+                Intent i = new Intent();
+                i.setAction(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+                i.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, DISCOVERY_DURATION);
+                startActivityForResult(i, 2);
+            } else {
 
-                String myname = "it.unipi.di.sam.bttest server";
-                UUID myid = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
-                BluetoothServerSocket bss;
-                BluetoothSocket bs = null;
-
-                try {
-                    bss = bta.listenUsingRfcommWithServiceRecord(myname,myid);
-                    bs = bss.accept();
-                    bss.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                //servi(bs);
+                //discoverFun();
             }
+
         } else if(view == cameraButton) {
 
             getSupportFragmentManager().beginTransaction()
@@ -112,8 +108,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     protected void onActivityResult(int code, int res, Intent data) {
         super.onActivityResult(code, res, data);
-        if (code == 1 || code == 2) {
+        if (code == 1) {
             if (res == RESULT_CANCELED) { btSwitch.setChecked(false); }
+        } else if(code == 2 && res == DISCOVERY_DURATION) {
+
+            btSwitch.setChecked(true);
+            Log.e("ciao", "ciao");
+            //discoverFun();
+            /*
+            String myname = "it.unipi.di.sam.bttest server";
+            UUID myid = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+            BluetoothServerSocket bss;
+            BluetoothSocket bs = null;
+
+            try {
+                bss = bta.listenUsingRfcommWithServiceRecord(myname,myid);
+                bs = bss.accept();
+                bss.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            //servi(bs);*/
         }
     }
 
@@ -122,31 +138,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if(buttonView == btSwitch) {
 
-            Intent i = new Intent();
+            if(isChecked &&
+                    bta.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
 
-            if(isChecked) {
-
+                Intent i = new Intent();
                 i.setAction(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
                 startActivityForResult(i, 1);
 
-            } else {
+            } else if (!isChecked &&
+                    bta.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
 
-                bta.cancelDiscovery();
+                //Show toast to explain that it will stop being discoverable in x seconds
+                //Maybe add a little delay
+                btSwitch.setChecked(true);
             }
         }
     }
 
-    private static class BluetoothReceiver extends BroadcastReceiver {
-
+    private class BluetoothReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            if((intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED) &&
+            if((Objects.equals(intent.getAction(), BluetoothAdapter.ACTION_STATE_CHANGED) &&
                 intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1) ==
                         BluetoothAdapter.STATE_OFF)
-                ||
-                intent.getAction().equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
+                || Objects.equals(intent.getAction(), BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
 
                 btSwitch.setChecked(false);
             } else if(intent.getAction().equals(BluetoothAdapter.ACTION_DISCOVERY_STARTED)) {
