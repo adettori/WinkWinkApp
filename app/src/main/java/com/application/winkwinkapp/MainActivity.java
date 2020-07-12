@@ -60,7 +60,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Forces the synchronisation of the toggle
         btSwitch.setChecked(false);
-        if(bta.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
+        if(bta != null &&
+                bta.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
             btSwitch.setChecked(true);
 
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
@@ -79,7 +80,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         if(view.getId() == R.id.players_button) {
 
-            if(bta.getState() != BluetoothAdapter.STATE_ON) {
+            if(bta != null &&
+                    bta.getState() != BluetoothAdapter.STATE_ON) {
                 Intent i = new Intent();
                 i.setAction(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(i, 2);
@@ -140,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(buttonView == btSwitch) {
 
             if(isChecked &&
+                    bta != null &&
                     bta.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
 
                 Intent i = new Intent();
@@ -148,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivityForResult(i, 1);
 
             } else if (!isChecked &&
+                    bta != null && 
                     bta.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
 
                 //TODO
