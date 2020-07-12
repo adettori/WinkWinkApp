@@ -96,9 +96,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         } else if(view.getId() == R.id.camera_button) {
 
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.menu_container, Camera2BasicFragment.newInstance())
-                    .commit();
+            Intent i = new Intent(this, Camera2BasicActivity.class);
+            startActivityForResult(i, 3);
         }
     }
 
