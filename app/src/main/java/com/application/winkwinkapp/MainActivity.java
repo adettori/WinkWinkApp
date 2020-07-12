@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .replace(R.id.sub_container, BluetoothListFragment.newInstance())
                         .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                         .commit();
-                //discoverFun();
+                bta.startDiscovery();
             }
 
 
@@ -151,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivityForResult(i, 1);
 
             } else if (!isChecked &&
-                    bta != null && 
+                    bta != null &&
                     bta.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
 
                 //TODO
