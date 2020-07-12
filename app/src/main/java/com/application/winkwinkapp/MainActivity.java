@@ -17,6 +17,7 @@
 package com.application.winkwinkapp;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -166,13 +167,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            if(Objects.equals(intent.getAction(), BluetoothAdapter.ACTION_STATE_CHANGED) &&
+            if(BluetoothAdapter.ACTION_STATE_CHANGED.equals(intent.getAction()) &&
                 intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1) ==
                         BluetoothAdapter.STATE_OFF) {
 
                 btSwitch.setChecked(false);
-            } else if(Objects
-                    .equals(intent.getAction(), BluetoothAdapter.ACTION_SCAN_MODE_CHANGED)) {
+            } else if(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED.equals(intent.getAction())) {
 
                 if(intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, -1)
                     != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
@@ -182,6 +182,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
 
                     btSwitch.setChecked(true);
+
             }
         }
     }
