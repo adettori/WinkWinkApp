@@ -25,8 +25,9 @@ public class BluetoothListFragment extends Fragment {
     private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
-    private BluetoothDiscoveryReceiver bdr;
     private android.bluetooth.BluetoothAdapter bta;
+
+    private ArrayList<BluetoothDevice> adapterDataset;
 
     public BluetoothListFragment() {
         // Required empty public constructor
@@ -37,7 +38,11 @@ public class BluetoothListFragment extends Fragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) { super.onCreate(savedInstanceState); }
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        adapterDataset = new ArrayList<>();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -49,7 +54,6 @@ public class BluetoothListFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
         bta = android.bluetooth.BluetoothAdapter.getDefaultAdapter();
-        bdr = new BluetoothDiscoveryReceiver();
 
         recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_1);
 
@@ -60,31 +64,17 @@ public class BluetoothListFragment extends Fragment {
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        mAdapter = new BluetoothRecycleAdapter(bta);
+        mAdapter = new BluetoothRecycleAdapter(bta, adapterDataset);
         recyclerView.setAdapter(mAdapter);
-
     }
 
     @Override
-    public void onResume() {
-
-        super.onResume();
-
-        if(bta != null) {
-            IntentFilter f = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-            getActivity().registerReceiver(bdr, f);
-        }
-    }
+    public void onResume() { super.onResume(); }
 
     @Override
-    public void onPause() {
+    public void onPause() { super.onPause(); }
 
-        super.onPause();
-
-        if(bta != null) {
-            getActivity().unregisterReceiver(bdr);
-        }
-    }
+    public void appendAdapterDataset(BluetoothDevice dev) { adapterDataset.add(dev);}
 
     private class BluetoothRecycleAdapter
             extends RecyclerView.Adapter<BluetoothRecycleAdapter.MyViewHolder> {
@@ -102,8 +92,9 @@ public class BluetoothListFragment extends Fragment {
             }
         }
 
-        public BluetoothRecycleAdapter(BluetoothAdapter bAdapter) {
-            mDataset = new ArrayList<BluetoothDevice>();
+        public BluetoothRecycleAdapter(BluetoothAdapter bAdapter,
+                                       ArrayList<BluetoothDevice> fragmentDataSet) {
+            mDataset = fragmentDataSet;
 
             for(BluetoothDevice x:bAdapter.getBondedDevices()) {
                 mDataset.add(x);
@@ -139,18 +130,4 @@ public class BluetoothListFragment extends Fragment {
         public void appendBluetoothDevice(BluetoothDevice dev) { mDataset.add(dev); }
     }
 
-    private class BluetoothDiscoveryReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-            String action = intent.getAction();
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                BluetoothDevice dev = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-
-                Log.e("test", dev.getName());
-                mAdapter.appendBluetoothDevice(dev);
-            }
-        }
-    }
 }

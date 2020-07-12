@@ -16,6 +16,7 @@
 
 package com.application.winkwinkapp;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -29,6 +30,7 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import java.util.Objects;
 
@@ -67,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
+        filter.addAction(BluetoothDevice.ACTION_FOUND);
         this.registerReceiver(br, filter);
     }
 
@@ -79,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
+        int REQUEST_ACCESS_COARSE_LOCATION = 1;
+
         if(view.getId() == R.id.players_button) {
 
             if(bta != null &&
@@ -92,6 +97,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .replace(R.id.sub_container, BluetoothListFragment.newInstance())
                         .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                         .commit();
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                        REQUEST_ACCESS_COARSE_LOCATION);
+
                 bta.startDiscovery();
             }
 
@@ -117,7 +127,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                         .commit();
             }
-            Log.e("ciao", "ciao");
             //discoverFun();
             /*
             String myname = "it.unipi.di.sam.bttest server";
@@ -183,6 +192,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     btSwitch.setChecked(true);
 
+            } else if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
+                BluetoothDevice dev = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+                Log.e("test", dev.getName());
+                //mAdapter.appendBluetoothDevice(dev);
             }
         }
     }
