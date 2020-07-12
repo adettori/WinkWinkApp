@@ -24,7 +24,6 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 
@@ -80,19 +79,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         if(view.getId() == R.id.players_button) {
 
-            if(bta.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+            if(bta.getState() != BluetoothAdapter.STATE_ON) {
                 Intent i = new Intent();
-                i.setAction(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-                i.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, DISCOVERY_DURATION);
+                i.setAction(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(i, 2);
             } else {
 
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.sub_container, BluetoothListFragment.newInstance("bob", "bob"))
+                        .addToBackStack("BLUETOOTH_LIST_TRANSITION")
+                        .commit();
                 //discoverFun();
             }
 
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.sub_container, BluetoothListFragment.newInstance("bob", "bob"))
-                    .commit();
+
 
         } else if(view.getId() == R.id.camera_button) {
 
@@ -106,9 +106,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onActivityResult(code, res, data);
         if (code == 1) {
             if (res == RESULT_CANCELED) { btSwitch.setChecked(false); }
-        } else if(code == 2 && res == DISCOVERY_DURATION) {
+        } else if(code == 2) {
 
-            btSwitch.setChecked(true);
+            if(res == RESULT_OK) {
+
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.sub_container, BluetoothListFragment.newInstance("bob", "bob"))
+                        .addToBackStack("BLUETOOTH_LIST_TRANSITION")
+                        .commit();
+            }
             Log.e("ciao", "ciao");
             //discoverFun();
             /*
