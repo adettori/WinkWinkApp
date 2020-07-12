@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             } else {
 
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.sub_container, BluetoothListFragment.newInstance("bob", "bob"))
+                        .replace(R.id.sub_container, BluetoothListFragment.newInstance())
                         .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                         .commit();
                 //discoverFun();
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if(res == RESULT_OK) {
 
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.sub_container, BluetoothListFragment.newInstance("bob", "bob"))
+                        .replace(R.id.sub_container, BluetoothListFragment.newInstance())
                         .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                         .commit();
             }
