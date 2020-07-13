@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if(view.getId() == R.id.players_button) {
 
-            if(bta != null && bta.isEnabled()) {
+            if(bta != null && !bta.isEnabled()) {
                 Intent i = new Intent();
                 i.setAction(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(i, REQUEST_BLUETOOTH_ENABLE_ID);
