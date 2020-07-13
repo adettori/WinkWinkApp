@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.application.winkwinkapp;
+package com.application.winkwink;
 
-import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -28,7 +27,6 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
         CompoundButton.OnCheckedChangeListener {
@@ -36,7 +34,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int DISCOVERY_DURATION_REQUEST = 120; //Seconds
     private static final int REQUEST_DISCOVERABLE_ID = 1;
     private static final int REQUEST_BLUETOOTH_ENABLE_ID = 2;
-    private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 3;
     private static final int REQUEST_CAMERA2_ACTIVITY_ID = 4;
 
     private Switch btSwitch;
@@ -97,11 +94,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
                         .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                         .commit();
-
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                        REQUEST_ACCESS_COARSE_LOCATION_ID);
-
             }
 
         } else if(view.getId() == R.id.camera_button) {

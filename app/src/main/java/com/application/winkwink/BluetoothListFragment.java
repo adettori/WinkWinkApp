@@ -1,11 +1,14 @@
-package com.application.winkwinkapp;
+package com.application.winkwink;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,13 +17,18 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-public class BluetoothListFragment extends Fragment implements View.OnClickListener {
+public class BluetoothListFragment extends Fragment
+        implements View.OnClickListener {
+
+    private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 1;
 
     private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
@@ -82,32 +90,72 @@ public class BluetoothListFragment extends Fragment implements View.OnClickListe
     public void onResume() {
         super.onResume();
 
-        getContext().registerReceiver(bdr, broadcastFilter);
+        //TODO
+        //Handle context == null
+        requireContext().registerReceiver(bdr, broadcastFilter);
     }
 
     @Override
     public void onPause() {
         super.onPause();
 
-        getContext().unregisterReceiver(bdr);
+        requireContext().unregisterReceiver(bdr);
     }
 
     public void appendAdapterDataset(BluetoothDevice dev) {
-        adapterDataset.add(dev);
-        mAdapter.notifyDataSetChanged();
+
+        if(!adapterDataset.contains(dev)) {
+            adapterDataset.add(dev);
+            mAdapter.notifyDataSetChanged();
+        }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onClick(View v) {
 
         if(v.getId() == R.id.discover_button) {
 
-            if(bta != null) {
-                bta.startDiscovery();
-                v.setEnabled(false);
+            if (ContextCompat.checkSelfPermission(
+                    getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                    PackageManager.PERMISSION_GRANTED) {
+
+                coordinateDeviceDiscovery(bta);
+            } else {
+                requestPermissions(
+                        new String[] { Manifest.permission.ACCESS_COARSE_LOCATION },
+                        REQUEST_ACCESS_COARSE_LOCATION_ID);
             }
+
         }
     }
+
+    private void coordinateDeviceDiscovery(BluetoothAdapter ba) {
+
+        if(ba != null) {
+            ba.startDiscovery();
+            discoverButton.setEnabled(false);
+        }
+    }
+
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                            int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_ACCESS_COARSE_LOCATION_ID:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    coordinateDeviceDiscovery(bta);
+                }  else {
+                    // Explain to the user that the feature is unavailable because
+                    // the features requires a permission that the user has denied.
+                    // At the same time, respect the user's decision. Don't link to
+                    // system settings in an effort to convince the user to change
+                    // their decision.
+                }
+        }
+    }
+
 
     private class BluetoothRecycleAdapter
             extends RecyclerView.Adapter<BluetoothRecycleAdapter.MyViewHolder> {
@@ -127,7 +175,6 @@ public class BluetoothListFragment extends Fragment implements View.OnClickListe
 
         public BluetoothRecycleAdapter(ArrayList<BluetoothDevice> fragmentDataSet) {
             mDataset = fragmentDataSet;
-            mDataset.addAll(bta.getBondedDevices());
         }
 
         // Create new views (invoked by the layout manager)

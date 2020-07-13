@@ -1,4 +1,4 @@
-package com.application.winkwinkapp;
+package com.application.winkwink;
 
 import android.content.Context;
 import android.graphics.Bitmap;
