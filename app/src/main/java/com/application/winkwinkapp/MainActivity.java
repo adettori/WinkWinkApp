@@ -31,13 +31,16 @@ import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-
-import java.util.Objects;
+import androidx.fragment.app.Fragment;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
         CompoundButton.OnCheckedChangeListener {
 
-    private static final int DISCOVERY_DURATION = 120; //Seconds
+    private static final int DISCOVERY_DURATION_REQUEST = 120; //Seconds
+    private static final int REQUEST_DISCOVERABLE_ID = 1;
+    private static final int REQUEST_BLUETOOTH_ENABLE_ID = 2;
+    private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 3;
+    private static final int REQUEST_CAMERA2_ACTIVITY_ID = 4;
 
     private Switch btSwitch;
     private BluetoothAdapter bta;
@@ -82,15 +85,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        int REQUEST_ACCESS_COARSE_LOCATION = 1;
 
         if(view.getId() == R.id.players_button) {
 
-            if(bta != null &&
-                    bta.getState() != BluetoothAdapter.STATE_ON) {
+            if(bta != null && bta.isEnabled()) {
                 Intent i = new Intent();
                 i.setAction(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(i, 2);
+                startActivityForResult(i, REQUEST_BLUETOOTH_ENABLE_ID);
             } else {
 
                 getSupportFragmentManager().beginTransaction()
@@ -100,33 +101,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                        REQUEST_ACCESS_COARSE_LOCATION);
+                        REQUEST_ACCESS_COARSE_LOCATION_ID);
 
-                bta.startDiscovery();
             }
-
-
 
         } else if(view.getId() == R.id.camera_button) {
 
             Intent i = new Intent(this, Camera2BasicActivity.class);
-            startActivityForResult(i, 3);
+            startActivityForResult(i, REQUEST_CAMERA2_ACTIVITY_ID);
         }
     }
 
     protected void onActivityResult(int code, int res, Intent data) {
         super.onActivityResult(code, res, data);
-        if (code == 1) {
-            if (res == RESULT_CANCELED) { btSwitch.setChecked(false); }
-        } else if(code == 2) {
 
-            if(res == RESULT_OK) {
+        switch(code) {
+            case REQUEST_DISCOVERABLE_ID:
+                if (res == RESULT_CANCELED) { btSwitch.setChecked(false); }
+            case REQUEST_BLUETOOTH_ENABLE_ID:
+                if(res == RESULT_OK) {
 
-                getSupportFragmentManager().beginTransaction()
+                    getSupportFragmentManager().beginTransaction()
                         .replace(R.id.sub_container, BluetoothListFragment.newInstance())
                         .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                         .commit();
-            }
+                }
             //discoverFun();
             /*
             String myname = "it.unipi.di.sam.bttest server";
@@ -157,8 +156,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 Intent i = new Intent();
                 i.setAction(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-                i.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, DISCOVERY_DURATION);
-                startActivityForResult(i, 1);
+                i.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,
+                        DISCOVERY_DURATION_REQUEST);
+                startActivityForResult(i, REQUEST_DISCOVERABLE_ID);
 
             } else if (!isChecked &&
                     bta != null &&
@@ -193,10 +193,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     btSwitch.setChecked(true);
 
             } else if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
-                BluetoothDevice dev = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-                Log.e("test", dev.getName());
-                //mAdapter.appendBluetoothDevice(dev);
+                BluetoothDevice dev = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                Fragment blf = getSupportFragmentManager().findFragmentById(R.id.sub_container);
+
+                if(blf instanceof BluetoothListFragment)
+                    ((BluetoothListFragment) blf).appendAdapterDataset(dev);
+
             }
         }
     }

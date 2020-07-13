@@ -2,30 +2,25 @@ package com.application.winkwinkapp;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class BluetoothListFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
-    private android.bluetooth.BluetoothAdapter bta;
+    private BluetoothAdapter bta;
 
     private ArrayList<BluetoothDevice> adapterDataset;
 
@@ -69,12 +64,23 @@ public class BluetoothListFragment extends Fragment {
     }
 
     @Override
-    public void onResume() { super.onResume(); }
+    public void onResume() {
+        super.onResume();
+
+        bta.startDiscovery();
+    }
 
     @Override
-    public void onPause() { super.onPause(); }
+    public void onPause() {
+        super.onPause();
 
-    public void appendAdapterDataset(BluetoothDevice dev) { adapterDataset.add(dev);}
+        bta.cancelDiscovery();
+    }
+
+    public void appendAdapterDataset(BluetoothDevice dev) {
+        adapterDataset.add(dev);
+        mAdapter.notifyDataSetChanged();
+    }
 
     private class BluetoothRecycleAdapter
             extends RecyclerView.Adapter<BluetoothRecycleAdapter.MyViewHolder> {
@@ -96,20 +102,18 @@ public class BluetoothListFragment extends Fragment {
                                        ArrayList<BluetoothDevice> fragmentDataSet) {
             mDataset = fragmentDataSet;
 
-            for(BluetoothDevice x:bAdapter.getBondedDevices()) {
-                mDataset.add(x);
-            }
+            mDataset.addAll(bAdapter.getBondedDevices());
         }
 
         // Create new views (invoked by the layout manager)
+        @NonNull
         @Override
-        public BluetoothRecycleAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent,
-                                                       int viewType) {
+        public BluetoothRecycleAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent,
+                                                                       int viewType) {
             // create a new view
             TextView v = (TextView) new TextView(getContext());
 
-            MyViewHolder vh = new MyViewHolder(v);
-            return vh;
+            return new MyViewHolder(v);
         }
 
         // Replace the contents of a view (invoked by the layout manager)
@@ -127,7 +131,6 @@ public class BluetoothListFragment extends Fragment {
             return mDataset.size();
         }
 
-        public void appendBluetoothDevice(BluetoothDevice dev) { mDataset.add(dev); }
     }
 
 }
