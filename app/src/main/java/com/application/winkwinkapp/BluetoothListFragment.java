@@ -2,10 +2,15 @@ package com.application.winkwinkapp;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,12 +20,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-public class BluetoothListFragment extends Fragment {
+public class BluetoothListFragment extends Fragment implements View.OnClickListener {
 
     private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
+
     private BluetoothAdapter bta;
+    private BluetoothDeviceReceiver bdr;
+    private IntentFilter broadcastFilter;
+    private Button discoverButton;
 
     private ArrayList<BluetoothDevice> adapterDataset;
 
@@ -35,6 +44,11 @@ public class BluetoothListFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         adapterDataset = new ArrayList<>();
+
+        bdr = new BluetoothDeviceReceiver();
+
+        broadcastFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        broadcastFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
     }
 
     @Override
@@ -59,17 +73,40 @@ public class BluetoothListFragment extends Fragment {
 
         mAdapter = new BluetoothRecycleAdapter(adapterDataset);
         recyclerView.setAdapter(mAdapter);
+
+        discoverButton = view.findViewById(R.id.discover_button);
+        discoverButton.setOnClickListener(this);
     }
 
     @Override
-    public void onResume() { super.onResume(); }
+    public void onResume() {
+        super.onResume();
+
+        getContext().registerReceiver(bdr, broadcastFilter);
+    }
 
     @Override
-    public void onPause() { super.onPause(); }
+    public void onPause() {
+        super.onPause();
+
+        getContext().unregisterReceiver(bdr);
+    }
 
     public void appendAdapterDataset(BluetoothDevice dev) {
         adapterDataset.add(dev);
         mAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        if(v.getId() == R.id.discover_button) {
+
+            if(bta != null) {
+                bta.startDiscovery();
+                v.setEnabled(false);
+            }
+        }
     }
 
     private class BluetoothRecycleAdapter
@@ -90,6 +127,7 @@ public class BluetoothListFragment extends Fragment {
 
         public BluetoothRecycleAdapter(ArrayList<BluetoothDevice> fragmentDataSet) {
             mDataset = fragmentDataSet;
+            mDataset.addAll(bta.getBondedDevices());
         }
 
         // Create new views (invoked by the layout manager)
@@ -118,6 +156,24 @@ public class BluetoothListFragment extends Fragment {
             return mDataset.size();
         }
 
+    }
+
+    private class BluetoothDeviceReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
+
+                BluetoothDevice dev = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                appendAdapterDataset(dev);
+
+            } else if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction())) {
+
+                if(discoverButton != null)
+                    discoverButton.setEnabled(true);
+            }
+        }
     }
 
 }

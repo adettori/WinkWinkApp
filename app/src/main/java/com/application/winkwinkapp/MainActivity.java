@@ -18,7 +18,6 @@ package com.application.winkwinkapp;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -30,7 +29,6 @@ import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
         CompoundButton.OnCheckedChangeListener {
@@ -43,7 +41,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Switch btSwitch;
     private BluetoothAdapter bta;
-    private BluetoothReceiver br;
+    private BluetoothMainReceiver br;
+    private IntentFilter broadcastFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +55,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         bta = BluetoothAdapter.getDefaultAdapter();
 
-        br = new BluetoothReceiver();
+        br = new BluetoothMainReceiver();
+
+        broadcastFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        broadcastFilter.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
     }
 
     @Override
@@ -69,10 +71,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 bta.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
             btSwitch.setChecked(true);
 
-        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        filter.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
-        filter.addAction(BluetoothDevice.ACTION_FOUND);
-        this.registerReceiver(br, filter);
+
+        this.registerReceiver(br, broadcastFilter);
     }
 
     @Override
@@ -102,7 +102,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                         REQUEST_ACCESS_COARSE_LOCATION_ID);
 
-                bta.startDiscovery();
             }
 
         } else if(view.getId() == R.id.camera_button) {
@@ -173,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private class BluetoothReceiver extends BroadcastReceiver {
+    private class BluetoothMainReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -193,15 +192,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
 
                     btSwitch.setChecked(true);
-
-            } else if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
-
-                BluetoothDevice dev = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                Fragment blf = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-
-                if(blf instanceof BluetoothListFragment)
-                    ((BluetoothListFragment) blf).appendAdapterDataset(dev);
-
             }
         }
     }
