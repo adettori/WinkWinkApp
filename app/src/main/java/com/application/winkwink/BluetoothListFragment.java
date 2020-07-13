@@ -134,6 +134,8 @@ public class BluetoothListFragment extends Fragment
 
         if(ba != null) {
             ba.startDiscovery();
+            adapterDataset.clear();
+            mAdapter.notifyDataSetChanged();
             discoverButton.setEnabled(false);
         }
     }
