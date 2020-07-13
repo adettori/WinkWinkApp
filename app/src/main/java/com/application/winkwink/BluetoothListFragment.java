@@ -14,10 +14,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -167,11 +169,19 @@ public class BluetoothListFragment extends Fragment
         // Complex data items may need more than one view per item, and
         // you provide access to all the views for a data item in a view holder
         public class MyViewHolder extends RecyclerView.ViewHolder {
-            // each data item is just a string in this case
-            public TextView textView;
-            public MyViewHolder(TextView v) {
+
+            private CardView cv;
+            private TextView bluetoothName;
+            private TextView bluetoothAddress;
+            private ImageView bluetoothIcon;
+
+            public MyViewHolder(View v) {
                 super(v);
-                textView = v;
+
+                cv = v.findViewById(R.id.cv);
+                bluetoothName = v.findViewById(R.id.cv_main_line);
+                bluetoothAddress = v.findViewById(R.id.cv_secondary_line);
+                bluetoothIcon = v.findViewById(R.id.cv_icon);
             }
         }
 
@@ -185,7 +195,8 @@ public class BluetoothListFragment extends Fragment
         public BluetoothRecycleAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent,
                                                                        int viewType) {
             // create a new view
-            TextView v = new TextView(getContext());
+            View v = getLayoutInflater()
+                    .inflate(R.layout.card_view_item, parent, false);
 
             return new MyViewHolder(v);
         }
@@ -195,7 +206,8 @@ public class BluetoothListFragment extends Fragment
         public void onBindViewHolder(MyViewHolder holder, int position) {
             // - get element from your dataset at this position
             // - replace the contents of the view with that element
-            holder.textView.setText(mDataset.get(position).getName());
+            holder.bluetoothName.setText(mDataset.get(position).getName());
+            holder.bluetoothAddress.setText(mDataset.get(position).getAddress());
 
         }
 
