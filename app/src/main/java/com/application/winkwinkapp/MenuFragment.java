@@ -1,5 +1,6 @@
 package com.application.winkwinkapp;
 
+import android.app.Activity;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -18,9 +19,7 @@ public class MenuFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static MenuFragment newInstance() {
-        return new MenuFragment();
-    }
+    public static MenuFragment newInstance() { return new MenuFragment(); }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -31,10 +30,14 @@ public class MenuFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
-        findButton = (Button) getActivity().findViewById((R.id.players_button));
+        Activity activity = getActivity();
+
+        assert activity != null;
+
+        findButton = activity.findViewById((R.id.players_button));
         findButton.setOnClickListener((View.OnClickListener) getActivity());
 
-        cameraButton = (Button) getActivity().findViewById((R.id.camera_button));
+        cameraButton = activity.findViewById((R.id.camera_button));
         cameraButton.setOnClickListener((View.OnClickListener) getActivity());
     }
 

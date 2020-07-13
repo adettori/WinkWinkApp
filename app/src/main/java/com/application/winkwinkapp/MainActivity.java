@@ -24,7 +24,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
@@ -52,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setContentView(R.layout.main_menu);
 
-        btSwitch = (Switch) findViewById(R.id.bt_switch);
+        btSwitch = findViewById(R.id.bt_switch);
         btSwitch.setOnCheckedChangeListener(this);
 
         bta = BluetoothAdapter.getDefaultAdapter();
@@ -95,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             } else {
 
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.sub_container, BluetoothListFragment.newInstance())
+                        .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
                         .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                         .commit();
 
@@ -119,14 +118,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch(code) {
             case REQUEST_DISCOVERABLE_ID:
                 if (res == RESULT_CANCELED) { btSwitch.setChecked(false); }
+                break;
             case REQUEST_BLUETOOTH_ENABLE_ID:
                 if(res == RESULT_OK) {
 
                     getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.sub_container, BluetoothListFragment.newInstance())
+                        .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
                         .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                         .commit();
                 }
+                break;
             //discoverFun();
             /*
             String myname = "it.unipi.di.sam.bttest server";
@@ -196,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             } else if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
 
                 BluetoothDevice dev = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                Fragment blf = getSupportFragmentManager().findFragmentById(R.id.sub_container);
+                Fragment blf = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
 
                 if(blf instanceof BluetoothListFragment)
                     ((BluetoothListFragment) blf).appendAdapterDataset(dev);

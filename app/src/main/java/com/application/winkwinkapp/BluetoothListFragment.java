@@ -24,9 +24,7 @@ public class BluetoothListFragment extends Fragment {
 
     private ArrayList<BluetoothDevice> adapterDataset;
 
-    public BluetoothListFragment() {
-        // Required empty public constructor
-    }
+    public BluetoothListFragment() {}
 
     public static BluetoothListFragment newInstance() {
         return new BluetoothListFragment();
@@ -59,7 +57,7 @@ public class BluetoothListFragment extends Fragment {
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        mAdapter = new BluetoothRecycleAdapter(bta, adapterDataset);
+        mAdapter = new BluetoothRecycleAdapter(adapterDataset);
         recyclerView.setAdapter(mAdapter);
     }
 
@@ -90,8 +88,7 @@ public class BluetoothListFragment extends Fragment {
             }
         }
 
-        public BluetoothRecycleAdapter(BluetoothAdapter bAdapter,
-                                       ArrayList<BluetoothDevice> fragmentDataSet) {
+        public BluetoothRecycleAdapter(ArrayList<BluetoothDevice> fragmentDataSet) {
             mDataset = fragmentDataSet;
         }
 
