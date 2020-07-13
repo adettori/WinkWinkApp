@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                         REQUEST_ACCESS_COARSE_LOCATION_ID);
 
+                bta.startDiscovery();
             }
 
         } else if(view.getId() == R.id.camera_button) {

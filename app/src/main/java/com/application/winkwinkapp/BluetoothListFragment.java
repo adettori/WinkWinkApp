@@ -48,7 +48,7 @@ public class BluetoothListFragment extends Fragment {
 
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
-        bta = android.bluetooth.BluetoothAdapter.getDefaultAdapter();
+        bta = BluetoothAdapter.getDefaultAdapter();
 
         recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_1);
 
@@ -64,18 +64,10 @@ public class BluetoothListFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-
-        bta.startDiscovery();
-    }
+    public void onResume() { super.onResume(); }
 
     @Override
-    public void onPause() {
-        super.onPause();
-
-        bta.cancelDiscovery();
-    }
+    public void onPause() { super.onPause(); }
 
     public void appendAdapterDataset(BluetoothDevice dev) {
         adapterDataset.add(dev);
