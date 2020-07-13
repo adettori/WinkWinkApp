@@ -50,7 +50,7 @@ public class BluetoothListFragment extends Fragment {
 
         bta = BluetoothAdapter.getDefaultAdapter();
 
-        recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_1);
+        recyclerView = view.findViewById(R.id.recycler_view_1);
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
@@ -93,8 +93,6 @@ public class BluetoothListFragment extends Fragment {
         public BluetoothRecycleAdapter(BluetoothAdapter bAdapter,
                                        ArrayList<BluetoothDevice> fragmentDataSet) {
             mDataset = fragmentDataSet;
-
-            mDataset.addAll(bAdapter.getBondedDevices());
         }
 
         // Create new views (invoked by the layout manager)
@@ -103,7 +101,7 @@ public class BluetoothListFragment extends Fragment {
         public BluetoothRecycleAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent,
                                                                        int viewType) {
             // create a new view
-            TextView v = (TextView) new TextView(getContext());
+            TextView v = new TextView(getContext());
 
             return new MyViewHolder(v);
         }
