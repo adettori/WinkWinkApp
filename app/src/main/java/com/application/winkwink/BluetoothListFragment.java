@@ -1,6 +1,5 @@
 package com.application.winkwink;
 
-import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -8,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -21,7 +19,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.cardview.widget.CardView;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,8 +28,7 @@ import java.util.ArrayList;
 public class BluetoothListFragment extends Fragment
         implements View.OnClickListener {
 
-    private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 10;
-    private static final int REQUEST_DISCOVER_BLUETOOTH_ENABLE_ID = 11;
+    private static final int REQUEST_DISCOVER_BLUETOOTH_ENABLE_ID = 10;
 
     private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
@@ -66,7 +62,7 @@ public class BluetoothListFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+
         return inflater.inflate(R.layout.fragment_bluetooth_list, container, false);
     }
 
@@ -76,8 +72,6 @@ public class BluetoothListFragment extends Fragment
 
         recyclerView = view.findViewById(R.id.recycler_view_1);
 
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
         recyclerView.setHasFixedSize(true);
 
         layoutManager = new LinearLayoutManager(getContext());
@@ -118,7 +112,7 @@ public class BluetoothListFragment extends Fragment
                 startActivityForResult(i, REQUEST_DISCOVER_BLUETOOTH_ENABLE_ID);
             } else {
 
-                handleLocationPermission();
+                coordinateDeviceDiscovery(bta);
             }
 
         }
@@ -131,9 +125,9 @@ public class BluetoothListFragment extends Fragment
 
             if (res == Activity.RESULT_CANCELED) {
                 //TODO
-                //Show toast to notify the user that bluetooth is needed
+                // Show toast to notify the user that bluetooth is needed
             } else {
-                 handleLocationPermission();
+                 coordinateDeviceDiscovery(bta);
             }
         }
     }
@@ -143,20 +137,6 @@ public class BluetoothListFragment extends Fragment
         if(!adapterDataset.contains(dev) && dev.getName() != null) {
             adapterDataset.add(dev);
             mAdapter.notifyDataSetChanged();
-        }
-    }
-
-    private void handleLocationPermission () {
-
-        if (ContextCompat.checkSelfPermission(
-                getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED) {
-
-            coordinateDeviceDiscovery(bta);
-        } else {
-            requestPermissions(
-                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                    REQUEST_ACCESS_COARSE_LOCATION_ID);
         }
     }
 
@@ -170,32 +150,11 @@ public class BluetoothListFragment extends Fragment
         }
     }
 
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_ACCESS_COARSE_LOCATION_ID:
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 &&
-                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    coordinateDeviceDiscovery(bta);
-                }  else {
-                    //TODO
-                    // Explain to the user that the feature is unavailable because
-                    // the features requires a permission that the user has denied.
-                    // At the same time, respect the user's decision. Don't link to
-                    // system settings in an effort to convince the user to change
-                    // their decision.
-                }
-        }
-    }
-
-
     private class BluetoothRecycleAdapter
             extends RecyclerView.Adapter<BluetoothRecycleAdapter.MyViewHolder>
             implements View.OnClickListener {
 
         private ArrayList<BluetoothDevice> mDataset;
-        private BluetoothDevice btDevice;
 
         public class MyViewHolder extends RecyclerView.ViewHolder {
 
@@ -203,6 +162,8 @@ public class BluetoothListFragment extends Fragment
             private TextView bluetoothName;
             private TextView bluetoothAddress;
             private ImageView bluetoothIcon;
+            //TODO
+            // Add icon depending on device class
 
             public MyViewHolder(View v) {
                 super(v);
@@ -237,8 +198,7 @@ public class BluetoothListFragment extends Fragment
 
             holder.bluetoothName.setText(mDataset.get(position).getName());
             holder.bluetoothAddress.setText(mDataset.get(position).getAddress());
-
-            btDevice = mDataset.get(position);
+            holder.cv.setTag(mDataset.get(position));
 
             holder.cv.setOnClickListener(this);
         }
@@ -252,11 +212,17 @@ public class BluetoothListFragment extends Fragment
         @Override
         public void onClick(View v) {
 
-            if(bta.isEnabled() && btDevice.getBondState() == BluetoothDevice.BOND_NONE)
-                btDevice.createBond();
+            if(bta.isEnabled()) {
+
+                BluetoothDevice btDevice = (BluetoothDevice) recyclerView.getTag();
+
+                if(btDevice != null &&
+                        btDevice.getBondState() == BluetoothDevice.BOND_NONE)
+                    btDevice.createBond();
+            }
             else if(!bta.isEnabled()) {}
                 //TODO
-                //Notify the user to enable bluetooth
+                // Notify the user to enable bluetooth
 
 
                 /*

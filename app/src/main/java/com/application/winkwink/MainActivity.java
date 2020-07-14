@@ -16,17 +16,23 @@
 
 package com.application.winkwink;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
         CompoundButton.OnCheckedChangeListener {
@@ -34,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int DISCOVERY_DURATION_REQUEST = 120; //Seconds
     private static final int REQUEST_DISCOVERABLE_ID = 1;
     private static final int REQUEST_CAMERA2_ACTIVITY_ID = 2;
+    private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 3;
 
     private Switch btSwitch;
     private BluetoothAdapter bta;
@@ -78,15 +85,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         this.unregisterReceiver(br);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onClick(View view) {
 
         if(view.getId() == R.id.players_button) {
 
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
-                    .addToBackStack("BLUETOOTH_LIST_TRANSITION")
-                    .commit();
+            handleLocationPermissionFragment();
 
         } else if(view.getId() == R.id.camera_button) {
 
@@ -128,6 +133,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //Show toast to explain that it will stop being discoverable in x seconds
                 btSwitch.setChecked(true);
             }
+        }
+    }
+
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        // If request is cancelled, the result arrays are empty.
+        if (requestCode == REQUEST_ACCESS_COARSE_LOCATION_ID) {
+            if (grantResults.length > 0 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
+                        .addToBackStack("BLUETOOTH_LIST_TRANSITION")
+                        .commit();
+            } else {
+                //TODO
+                // Explain to the user that the feature is unavailable because
+                // the features requires a permission that the user has denied.
+                // At the same time, respect the user's decision. Don't link to
+                // system settings in an effort to convince the user to change
+                // their decision.
+            }
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void handleLocationPermissionFragment () {
+
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED) {
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
+                    .addToBackStack("BLUETOOTH_LIST_TRANSITION")
+                    .commit();
+        } else {
+            requestPermissions(
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    REQUEST_ACCESS_COARSE_LOCATION_ID);
         }
     }
 
