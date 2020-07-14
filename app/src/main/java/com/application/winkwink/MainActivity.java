@@ -33,12 +33,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final int DISCOVERY_DURATION_REQUEST = 120; //Seconds
     private static final int REQUEST_DISCOVERABLE_ID = 1;
-    private static final int REQUEST_BLUETOOTH_ENABLE_ID = 2;
-    private static final int REQUEST_CAMERA2_ACTIVITY_ID = 4;
+    private static final int REQUEST_CAMERA2_ACTIVITY_ID = 2;
 
     private Switch btSwitch;
     private BluetoothAdapter bta;
-    private BluetoothMainReceiver br;
+    private BluetoothToggleReceiver br;
     private IntentFilter broadcastFilter;
 
     @Override
@@ -52,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         bta = BluetoothAdapter.getDefaultAdapter();
 
-        br = new BluetoothMainReceiver();
+        br = new BluetoothToggleReceiver();
 
         broadcastFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         broadcastFilter.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
@@ -84,17 +83,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if(view.getId() == R.id.players_button) {
 
-            if(bta != null && !bta.isEnabled()) {
-                Intent i = new Intent();
-                i.setAction(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(i, REQUEST_BLUETOOTH_ENABLE_ID);
-            } else {
-
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
-                        .addToBackStack("BLUETOOTH_LIST_TRANSITION")
-                        .commit();
-            }
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
+                    .addToBackStack("BLUETOOTH_LIST_TRANSITION")
+                    .commit();
 
         } else if(view.getId() == R.id.camera_button) {
 
@@ -106,19 +98,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onActivityResult(int code, int res, Intent data) {
         super.onActivityResult(code, res, data);
 
-        switch(code) {
-            case REQUEST_DISCOVERABLE_ID:
-                if (res == RESULT_CANCELED) { btSwitch.setChecked(false); }
-                break;
-            case REQUEST_BLUETOOTH_ENABLE_ID:
-                if(res == RESULT_OK) {
-
-                    getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
-                        .addToBackStack("BLUETOOTH_LIST_TRANSITION")
-                        .commit();
-                }
-                break;
+        if (code == REQUEST_DISCOVERABLE_ID) {
+            if (res == RESULT_CANCELED) {
+                btSwitch.setChecked(false);
+            }
         }
     }
 
@@ -148,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private class BluetoothMainReceiver extends BroadcastReceiver {
+    private class BluetoothToggleReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {

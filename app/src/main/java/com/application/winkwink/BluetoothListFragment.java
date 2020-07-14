@@ -1,6 +1,7 @@
 package com.application.winkwink;
 
 import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -30,14 +31,15 @@ import java.util.ArrayList;
 public class BluetoothListFragment extends Fragment
         implements View.OnClickListener {
 
-    private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 1;
+    private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 10;
+    private static final int REQUEST_DISCOVER_BLUETOOTH_ENABLE_ID = 11;
 
     private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
 
     private BluetoothAdapter bta;
-    private BluetoothDeviceReceiver bdr;
+    private BluetoothDiscoveryReceiver bdr;
     private IntentFilter broadcastFilter;
     private Button discoverButton;
 
@@ -55,7 +57,7 @@ public class BluetoothListFragment extends Fragment
 
         adapterDataset = new ArrayList<>();
 
-        bdr = new BluetoothDeviceReceiver();
+        bdr = new BluetoothDiscoveryReceiver();
 
         broadcastFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         broadcastFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
@@ -104,6 +106,38 @@ public class BluetoothListFragment extends Fragment
         requireContext().unregisterReceiver(bdr);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
+    public void onClick(View v) {
+
+        if (v.getId() == R.id.discover_button) {
+
+            if(bta != null && !bta.isEnabled()) {
+                Intent i = new Intent();
+                i.setAction(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(i, REQUEST_DISCOVER_BLUETOOTH_ENABLE_ID);
+            } else {
+
+                handleLocationPermission();
+            }
+
+        }
+
+    }
+
+    public void onActivityResult(int code, int res, Intent data) {
+
+        if(code == REQUEST_DISCOVER_BLUETOOTH_ENABLE_ID) {
+
+            if (res == Activity.RESULT_CANCELED) {
+                //TODO
+                //Show toast to notify the user that bluetooth is needed
+            } else {
+                 handleLocationPermission();
+            }
+        }
+    }
+
     public void appendAdapterDataset(BluetoothDevice dev) {
 
         if(!adapterDataset.contains(dev) && dev.getName() != null) {
@@ -112,23 +146,18 @@ public class BluetoothListFragment extends Fragment
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    @Override
-    public void onClick(View v) {
+    private void handleLocationPermission () {
 
-        if (v.getId() == R.id.discover_button) {
-            if (ContextCompat.checkSelfPermission(
-                    getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) ==
-                    PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED) {
 
-                coordinateDeviceDiscovery(bta);
-            } else {
-                requestPermissions(
-                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                        REQUEST_ACCESS_COARSE_LOCATION_ID);
-            }
+            coordinateDeviceDiscovery(bta);
+        } else {
+            requestPermissions(
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    REQUEST_ACCESS_COARSE_LOCATION_ID);
         }
-
     }
 
     private void coordinateDeviceDiscovery(BluetoothAdapter ba) {
@@ -141,8 +170,8 @@ public class BluetoothListFragment extends Fragment
         }
     }
 
-    public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                            int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         switch (requestCode) {
             case REQUEST_ACCESS_COARSE_LOCATION_ID:
                 // If request is cancelled, the result arrays are empty.
@@ -150,6 +179,7 @@ public class BluetoothListFragment extends Fragment
                         grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     coordinateDeviceDiscovery(bta);
                 }  else {
+                    //TODO
                     // Explain to the user that the feature is unavailable because
                     // the features requires a permission that the user has denied.
                     // At the same time, respect the user's decision. Don't link to
@@ -222,8 +252,13 @@ public class BluetoothListFragment extends Fragment
         @Override
         public void onClick(View v) {
 
-            if(btDevice.getBondState() == BluetoothDevice.BOND_NONE)
+            if(bta.isEnabled() && btDevice.getBondState() == BluetoothDevice.BOND_NONE)
                 btDevice.createBond();
+            else if(!bta.isEnabled()) {}
+                //TODO
+                //Notify the user to enable bluetooth
+
+
                 /*
                 String myname = "it.unipi.di.sam.bttest server";
                 UUID myid = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
@@ -243,7 +278,7 @@ public class BluetoothListFragment extends Fragment
 
     }
 
-    private class BluetoothDeviceReceiver extends BroadcastReceiver {
+    private class BluetoothDiscoveryReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
