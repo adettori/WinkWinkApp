@@ -200,3 +200,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 }
+
+/*
+                String myname = "it.unipi.di.sam.bttest server";
+                UUID myid = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+                BluetoothServerSocket bss;
+                BluetoothSocket bs = null;
+
+                try {
+                    bss = bta.listenUsingRfcommWithServiceRecord(myname,myid);
+                    bs = bss.accept();
+                    bss.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                //servi(bs);*/

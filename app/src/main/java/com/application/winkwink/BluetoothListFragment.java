@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,7 +16,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -29,6 +27,7 @@ public class BluetoothListFragment extends Fragment
         implements View.OnClickListener {
 
     private static final int REQUEST_DISCOVER_BLUETOOTH_ENABLE_ID = 10;
+    private static final int REQUEST_BOND_BLUETOOTH_ENABLE_ID = 11;
 
     private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
@@ -77,7 +76,7 @@ public class BluetoothListFragment extends Fragment
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        mAdapter = new BluetoothRecycleAdapter(adapterDataset);
+        mAdapter = new BluetoothRecycleAdapter(adapterDataset, this);
         recyclerView.setAdapter(mAdapter);
 
         discoverButton = view.findViewById(R.id.discover_button);
@@ -89,7 +88,7 @@ public class BluetoothListFragment extends Fragment
         super.onResume();
 
         //TODO
-        //Handle context == null
+        // Handle context == null
         requireContext().registerReceiver(bdr, broadcastFilter);
     }
 
@@ -100,7 +99,6 @@ public class BluetoothListFragment extends Fragment
         requireContext().unregisterReceiver(bdr);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onClick(View v) {
 
@@ -115,6 +113,21 @@ public class BluetoothListFragment extends Fragment
                 coordinateDeviceDiscovery(bta);
             }
 
+        } else if(v.getId() == R.id.cv) {
+
+            //Bluetooth adapter is already initialised if a cardview is presented
+            if(!bta.isEnabled()) {
+
+                Intent i = new Intent();
+                i.setAction(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(i, REQUEST_BOND_BLUETOOTH_ENABLE_ID);
+            } else {
+
+                BluetoothDevice btDevice = (BluetoothDevice) v.getTag();
+
+                if(btDevice.getBondState() == BluetoothDevice.BOND_NONE)
+                    btDevice.createBond();
+            }
         }
 
     }
@@ -128,6 +141,16 @@ public class BluetoothListFragment extends Fragment
                 // Show toast to notify the user that bluetooth is needed
             } else {
                  coordinateDeviceDiscovery(bta);
+            }
+        } else if(code == REQUEST_BOND_BLUETOOTH_ENABLE_ID) {
+
+            if (res == Activity.RESULT_CANCELED) {
+                //TODO
+                // Show toast to notify the user that bluetooth is needed
+            } else {
+
+                //TODO
+                // Show a toast to tell the user to reselect option
             }
         }
     }
@@ -151,10 +174,10 @@ public class BluetoothListFragment extends Fragment
     }
 
     private class BluetoothRecycleAdapter
-            extends RecyclerView.Adapter<BluetoothRecycleAdapter.MyViewHolder>
-            implements View.OnClickListener {
+            extends RecyclerView.Adapter<BluetoothRecycleAdapter.MyViewHolder> {
 
         private ArrayList<BluetoothDevice> mDataset;
+        private View.OnClickListener externalListener;
 
         public class MyViewHolder extends RecyclerView.ViewHolder {
 
@@ -176,8 +199,10 @@ public class BluetoothListFragment extends Fragment
             }
         }
 
-        public BluetoothRecycleAdapter(ArrayList<BluetoothDevice> fragmentDataSet) {
+        public BluetoothRecycleAdapter(ArrayList<BluetoothDevice> fragmentDataSet,
+                                       View.OnClickListener listener) {
             mDataset = fragmentDataSet;
+            externalListener = listener;
         }
 
         // Create new views (invoked by the layout manager)
@@ -200,46 +225,13 @@ public class BluetoothListFragment extends Fragment
             holder.bluetoothAddress.setText(mDataset.get(position).getAddress());
             holder.cv.setTag(mDataset.get(position));
 
-            holder.cv.setOnClickListener(this);
+            holder.cv.setOnClickListener(externalListener);
         }
 
         // Return the size of your dataset (invoked by the layout manager)
         @Override
         public int getItemCount() {
             return mDataset.size();
-        }
-
-        @Override
-        public void onClick(View v) {
-
-            if(bta.isEnabled()) {
-
-                BluetoothDevice btDevice = (BluetoothDevice) recyclerView.getTag();
-
-                if(btDevice != null &&
-                        btDevice.getBondState() == BluetoothDevice.BOND_NONE)
-                    btDevice.createBond();
-            }
-            else if(!bta.isEnabled()) {}
-                //TODO
-                // Notify the user to enable bluetooth
-
-
-                /*
-                String myname = "it.unipi.di.sam.bttest server";
-                UUID myid = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
-                BluetoothServerSocket bss;
-                BluetoothSocket bs = null;
-
-                try {
-                    bss = bta.listenUsingRfcommWithServiceRecord(myname,myid);
-                    bs = bss.accept();
-                    bss.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                //servi(bs);*/
         }
 
     }
