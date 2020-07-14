@@ -106,7 +106,7 @@ public class BluetoothListFragment extends Fragment
 
     public void appendAdapterDataset(BluetoothDevice dev) {
 
-        if(!adapterDataset.contains(dev)) {
+        if(!adapterDataset.contains(dev) && dev.getName() != null) {
             adapterDataset.add(dev);
             mAdapter.notifyDataSetChanged();
         }
@@ -116,8 +116,7 @@ public class BluetoothListFragment extends Fragment
     @Override
     public void onClick(View v) {
 
-        if(v.getId() == R.id.discover_button) {
-
+        if (v.getId() == R.id.discover_button) {
             if (ContextCompat.checkSelfPermission(
                     getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) ==
                     PackageManager.PERMISSION_GRANTED) {
@@ -125,11 +124,11 @@ public class BluetoothListFragment extends Fragment
                 coordinateDeviceDiscovery(bta);
             } else {
                 requestPermissions(
-                        new String[] { Manifest.permission.ACCESS_COARSE_LOCATION },
+                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                         REQUEST_ACCESS_COARSE_LOCATION_ID);
             }
-
         }
+
     }
 
     private void coordinateDeviceDiscovery(BluetoothAdapter ba) {
@@ -162,12 +161,12 @@ public class BluetoothListFragment extends Fragment
 
 
     private class BluetoothRecycleAdapter
-            extends RecyclerView.Adapter<BluetoothRecycleAdapter.MyViewHolder> {
-        private ArrayList<BluetoothDevice> mDataset;
+            extends RecyclerView.Adapter<BluetoothRecycleAdapter.MyViewHolder>
+            implements View.OnClickListener {
 
-        // Provide a reference to the views for each data item
-        // Complex data items may need more than one view per item, and
-        // you provide access to all the views for a data item in a view holder
+        private ArrayList<BluetoothDevice> mDataset;
+        private BluetoothDevice btDevice;
+
         public class MyViewHolder extends RecyclerView.ViewHolder {
 
             private CardView cv;
@@ -182,6 +181,7 @@ public class BluetoothListFragment extends Fragment
                 bluetoothName = v.findViewById(R.id.cv_main_line);
                 bluetoothAddress = v.findViewById(R.id.cv_secondary_line);
                 bluetoothIcon = v.findViewById(R.id.cv_icon);
+
             }
         }
 
@@ -204,17 +204,41 @@ public class BluetoothListFragment extends Fragment
         // Replace the contents of a view (invoked by the layout manager)
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
-            // - get element from your dataset at this position
-            // - replace the contents of the view with that element
+
             holder.bluetoothName.setText(mDataset.get(position).getName());
             holder.bluetoothAddress.setText(mDataset.get(position).getAddress());
 
+            btDevice = mDataset.get(position);
+
+            holder.cv.setOnClickListener(this);
         }
 
         // Return the size of your dataset (invoked by the layout manager)
         @Override
         public int getItemCount() {
             return mDataset.size();
+        }
+
+        @Override
+        public void onClick(View v) {
+
+            if(btDevice.getBondState() == BluetoothDevice.BOND_NONE)
+                btDevice.createBond();
+                /*
+                String myname = "it.unipi.di.sam.bttest server";
+                UUID myid = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+                BluetoothServerSocket bss;
+                BluetoothSocket bs = null;
+
+                try {
+                    bss = bta.listenUsingRfcommWithServiceRecord(myname,myid);
+                    bs = bss.accept();
+                    bss.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                //servi(bs);*/
         }
 
     }
