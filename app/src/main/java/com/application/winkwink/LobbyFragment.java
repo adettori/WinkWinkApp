@@ -12,7 +12,12 @@ import com.application.winkwink.BluetoothUtilities.BluetoothServerTask;
 
 public class LobbyFragment extends Fragment {
 
-    public LobbyFragment() {}
+    BluetoothServerTask bst;
+    Thread serverT;
+
+    public LobbyFragment() {
+        bst = new BluetoothServerTask();
+    }
 
     public static LobbyFragment newInstance() {
         return new LobbyFragment();
@@ -27,12 +32,15 @@ public class LobbyFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
+        serverT = new Thread(bst);
+        serverT.start();
     }
 
     @Override
     public void onPause() {
         super.onPause();
 
+        serverT.interrupt();
     }
 
     @Override

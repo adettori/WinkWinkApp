@@ -13,6 +13,7 @@ import android.widget.Button;
 public class MenuFragment extends Fragment {
 
     private Button findButton;
+    private Button hostButton;
     private Button cameraButton;
 
     public MenuFragment() {
@@ -34,8 +35,11 @@ public class MenuFragment extends Fragment {
 
         assert activity != null;
 
-        findButton = activity.findViewById((R.id.players_button));
+        findButton = activity.findViewById((R.id.find_button));
         findButton.setOnClickListener((View.OnClickListener) getActivity());
+
+        hostButton = activity.findViewById(R.id.host_button);
+        hostButton.setOnClickListener((View.OnClickListener) getActivity());
 
         cameraButton = activity.findViewById((R.id.camera_button));
         cameraButton.setOnClickListener((View.OnClickListener) getActivity());

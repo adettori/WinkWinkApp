@@ -89,10 +89,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
 
-        if(view.getId() == R.id.players_button) {
+        if(view.getId() == R.id.find_button) {
 
             handleLocationPermissionFragment();
+        } else if(view.getId() == R.id.host_button) {
 
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, LobbyFragment.newInstance())
+                    .addToBackStack("LOBBY_TRANSITION")
+                    .commit();
         } else if(view.getId() == R.id.camera_button) {
 
             Intent i = new Intent(this, Camera2BasicActivity.class);

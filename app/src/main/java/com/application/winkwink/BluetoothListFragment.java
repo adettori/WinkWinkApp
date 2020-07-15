@@ -21,6 +21,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.application.winkwink.BluetoothUtilities.BluetoothClientTask;
+
 import java.util.ArrayList;
 
 public class BluetoothListFragment extends Fragment
@@ -132,6 +134,11 @@ public class BluetoothListFragment extends Fragment
                 if(btDevice.getBondState() == BluetoothDevice.BOND_NONE)
                     btDevice.createBond();
             }
+
+            BluetoothClientTask sendTask = new BluetoothClientTask(
+                    btDevice, "ciaone a tutti".getBytes());
+            Thread senderT = new Thread(sendTask);
+            senderT.start();
         }
 
     }
@@ -152,7 +159,7 @@ public class BluetoothListFragment extends Fragment
                 //TODO
                 // Show toast to notify the user that bluetooth is needed
             } else {
-                
+
                 if(lastRefDev.getBondState() == BluetoothDevice.BOND_NONE)
                     lastRefDev.createBond();
 
