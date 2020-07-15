@@ -17,15 +17,21 @@
     app:layout_constraintVertical_bias="0">
 
     <Button
-        android:id="@+id/players_button"
+        android:id="@+id/find_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/find_players" />
+        android:text="@string/find_game" />
+
+    <Button
+        android:id="@+id/host_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/host_game" />
 
     <Button
         android:id="@+id/camera_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/test" />
+        android:text="test" />
 
 </LinearLayout>

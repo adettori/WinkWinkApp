@@ -17,9 +17,13 @@
 
     <string name="request_permission">This app needs camera permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
-    <string name="find_players">Find players</string>
+    <string name="find_game">Find game</string>
+    <string name="host_game">Host game</string>
     <string name="discoverable">Discoverable</string>
-    <string name="test">Test</string>
     <string name="discover">Discover</string>
+    <string name="lobby">Lobby</string>
+    <string name="lobby_desc_1">Waiting for a player to join.</string>
+    <string name="lobby_desc_2">Press back to cancel.</string>
+
 
 </resources>
