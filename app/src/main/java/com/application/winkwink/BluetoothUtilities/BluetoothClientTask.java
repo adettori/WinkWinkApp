@@ -24,14 +24,10 @@ public class BluetoothClientTask implements Runnable {
     @Override
     public void run() {
 
-        BluetoothSocket bs;
-
-        try {
-            bs = btd.createRfcommSocketToServiceRecord(myId);
+        try (BluetoothSocket bs = btd.createRfcommSocketToServiceRecord(myId)) {
 
             bs.connect();
             handleConnection(bs);
-            bs.close();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -44,6 +40,7 @@ public class BluetoothClientTask implements Runnable {
             OutputStream os = bs.getOutputStream();
 
             os.write(toSend);
+            os.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

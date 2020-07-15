@@ -12,12 +12,11 @@ import java.util.UUID;
 
 public class BluetoothServerTask implements Runnable{
 
-    String myName = "application.winkwink bluetoothServer";
+    String myName = "it.application.winkwink bluetoothServer";
     UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
     BluetoothAdapter bta;
 
-    BluetoothServerSocket bss;
     BluetoothSocket bs;
 
     public BluetoothServerTask() {
@@ -28,8 +27,7 @@ public class BluetoothServerTask implements Runnable{
     @Override
     public void run() {
 
-        try {
-            bss = bta.listenUsingRfcommWithServiceRecord(myName,myId);
+        try (BluetoothServerSocket bss = bta.listenUsingRfcommWithServiceRecord(myName,myId)) {
 
             while(!Thread.interrupted()) {
 
@@ -37,8 +35,6 @@ public class BluetoothServerTask implements Runnable{
                 handleConnection(bs);
                 bs.close();
             }
-
-            bss.close();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -50,12 +46,15 @@ public class BluetoothServerTask implements Runnable{
         try {
             InputStream is = bSocket.getInputStream();
 
-            byte[] content = new byte[100];
+            byte[] buffer = new byte[1024];
             int numBytes;
 
-            numBytes = is.read(content);
+            //TODO
+            // Comunication protocol to define
+            numBytes = is.read(buffer);
 
-            String s = new String(content);
+
+            String s = new String(buffer);
             Log.e("test " + numBytes, s);
         } catch (IOException e) {
             e.printStackTrace();

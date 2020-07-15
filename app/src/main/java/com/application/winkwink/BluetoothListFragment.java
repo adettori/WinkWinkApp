@@ -43,6 +43,7 @@ public class BluetoothListFragment extends Fragment
     private ArrayList<BluetoothDevice> adapterDataset;
 
     private BluetoothDevice lastRefDev;
+    private Thread btSenderThread;
 
     public BluetoothListFragment() {}
 
@@ -129,16 +130,18 @@ public class BluetoothListFragment extends Fragment
                 startActivityForResult(i, REQUEST_BOND_BLUETOOTH_ENABLE_ID);
 
                 lastRefDev = btDevice;
-            } else {
-
-                if(btDevice.getBondState() == BluetoothDevice.BOND_NONE)
+            } else if(btDevice.getBondState() == BluetoothDevice.BOND_NONE) {
                     btDevice.createBond();
             }
 
             BluetoothClientTask sendTask = new BluetoothClientTask(
                     btDevice, "ciaone a tutti".getBytes());
-            Thread senderT = new Thread(sendTask);
-            senderT.start();
+
+            if(btSenderThread == null || !btSenderThread.isAlive()) {
+                bta.cancelDiscovery();
+                btSenderThread = new Thread(sendTask);
+                btSenderThread.start();
+            }
         }
 
     }
