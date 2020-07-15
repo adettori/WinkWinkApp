@@ -25,6 +25,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
@@ -34,18 +35,27 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.mlkit.vision.face.Face;
+import com.google.mlkit.vision.face.FaceDetection;
+import com.google.mlkit.vision.face.FaceDetector;
+import com.google.mlkit.vision.face.FaceDetectorOptions;
+
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
-        CompoundButton.OnCheckedChangeListener {
+        CompoundButton.OnCheckedChangeListener, OnSuccessListener<List<Face>>, OnFailureListener {
 
     private static final int DISCOVERY_DURATION_REQUEST = 120; //Seconds
     private static final int REQUEST_DISCOVERABLE_ID = 1;
-    private static final int REQUEST_CAMERA2_ACTIVITY_ID = 2;
-    private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 3;
+    private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 2;
 
     private Switch btSwitch;
     private BluetoothAdapter bta;
     private BluetoothToggleReceiver br;
     private IntentFilter broadcastFilter;
+    private FaceDetector faceDet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,10 +68,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         bta = BluetoothAdapter.getDefaultAdapter();
 
-        br = new BluetoothToggleReceiver();
+        br = new BluetoothToggleReceiver(btSwitch);
 
         broadcastFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         broadcastFilter.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
+
+        FaceDetectorOptions faceOpt = new FaceDetectorOptions.Builder()
+                .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+                .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+                .build();
+
+        faceDet = FaceDetection.getClient(faceOpt);
     }
 
     @Override
@@ -98,10 +115,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     .replace(R.id.fragment_container, LobbyFragment.newInstance())
                     .addToBackStack("LOBBY_TRANSITION")
                     .commit();
-        } else if(view.getId() == R.id.camera_button) {
-
-            Intent i = new Intent(this, Camera2BasicActivity.class);
-            startActivityForResult(i, REQUEST_CAMERA2_ACTIVITY_ID);
         }
     }
 
@@ -180,7 +193,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private class BluetoothToggleReceiver extends BroadcastReceiver {
+    @Override
+    public void onSuccess(List<Face> faces) {
+        Log.e("SUP", "Faces detected: " + faces.size());
+
+        for (Face face : faces) {
+            Log.v(
+                    "MLKit",
+                    "face left eye open probability: "
+                            + face.getLeftEyeOpenProbability());
+            Log.v(
+                    "MLKit",
+                    "face right eye open probability: "
+                            + face.getRightEyeOpenProbability());
+            Log.v("MLKit", "face smiling probability: "
+                    + face.getSmilingProbability());
+        }
+
+        /*
+        *         InputImage toDetect = InputImage.fromMediaImage(input, imageRotation);
+
+        //input.close();
+
+        detector.process(toDetect)
+                .addOnSuccessListener(this)
+                .addOnFailureListener(this);*/
+    }
+
+    @Override
+    public void onFailure(@NonNull Exception e) {
+
+    }
+
+    private static class BluetoothToggleReceiver extends BroadcastReceiver {
+
+        Switch bluetoothSwitch;
+
+        public BluetoothToggleReceiver(Switch switchButton) {
+            super();
+
+            bluetoothSwitch = switchButton;
+        }
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -189,35 +242,64 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1) ==
                         BluetoothAdapter.STATE_OFF) {
 
-                btSwitch.setChecked(false);
+                bluetoothSwitch.setChecked(false);
             } else if(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED.equals(intent.getAction())) {
 
                 if(intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, -1)
                     != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
 
-                    btSwitch.setChecked(false);
+                    bluetoothSwitch.setChecked(false);
                 else if(intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, -1)
                     == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
 
-                    btSwitch.setChecked(true);
+                    bluetoothSwitch.setChecked(true);
             }
         }
     }
-
-}
-
 /*
-                String myname = "it.unipi.di.sam.bttest server";
-                UUID myid = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
-                BluetoothServerSocket bss;
-                BluetoothSocket bs = null;
+    private static class ImageLoader implements Runnable {
 
-                try {
-                    bss = bta.listenUsingRfcommWithServiceRecord(myname,myid);
-                    bs = bss.accept();
-                    bss.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+        private final Uri mUri;
+
+        ImageLoader(Uri uri, ImageView imgV) {
+            mUri = uri;
+        }
+
+        @Override
+        public void run() {
+
+            try {
+                FileInputStream fileStream = new FileInputStream(mUri.getPath());
+
+                BitmapFactory.decodeStream(fileStream);
+
+
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            Image img = MediaStore.Images.Media.getBitmap(mUri);
+            ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+            FileOutputStream output = null;
+            try {
+                output = new FileOutputStream(mUri);
+                output.write(bytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                mImage.close();
+                if (null != output) {
+                    try {
+                        output.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
+            }
+        }
 
-                //servi(bs);*/
+    }
+*/
+}
