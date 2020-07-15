@@ -50,8 +50,9 @@ public class BluetoothServerTask implements Runnable{
             int numBytes;
 
             //TODO
-            // Communication protocol to define
+            // Comunication protocol to define
             numBytes = is.read(buffer);
+
 
             String s = new String(buffer);
             Log.e("test " + numBytes, s);
