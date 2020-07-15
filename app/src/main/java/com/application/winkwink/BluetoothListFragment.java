@@ -40,6 +40,8 @@ public class BluetoothListFragment extends Fragment
 
     private ArrayList<BluetoothDevice> adapterDataset;
 
+    private BluetoothDevice lastRefDev;
+
     public BluetoothListFragment() {}
 
     public static BluetoothListFragment newInstance() {
@@ -115,15 +117,17 @@ public class BluetoothListFragment extends Fragment
 
         } else if(v.getId() == R.id.cv) {
 
+            BluetoothDevice btDevice = (BluetoothDevice) v.getTag();
+
             //Bluetooth adapter is already initialised if a cardview is presented
             if(!bta.isEnabled()) {
 
                 Intent i = new Intent();
                 i.setAction(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(i, REQUEST_BOND_BLUETOOTH_ENABLE_ID);
-            } else {
 
-                BluetoothDevice btDevice = (BluetoothDevice) v.getTag();
+                lastRefDev = btDevice;
+            } else {
 
                 if(btDevice.getBondState() == BluetoothDevice.BOND_NONE)
                     btDevice.createBond();
@@ -148,9 +152,11 @@ public class BluetoothListFragment extends Fragment
                 //TODO
                 // Show toast to notify the user that bluetooth is needed
             } else {
+                
+                if(lastRefDev.getBondState() == BluetoothDevice.BOND_NONE)
+                    lastRefDev.createBond();
 
-                //TODO
-                // Show a toast to tell the user to reselect option
+                lastRefDev = null;
             }
         }
     }
