@@ -1,11 +1,14 @@
 package com.application.winkwink.BluetoothUtilities;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.UUID;
 
 public class BluetoothClientTask implements Runnable {
@@ -19,6 +22,15 @@ public class BluetoothClientTask implements Runnable {
 
         btd = bDevice;
         toSend = data;
+    }
+
+    public BluetoothClientTask(BluetoothDevice bDevice, Bitmap data) {
+
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        data.compress(Bitmap.CompressFormat.PNG, 100, stream);
+
+        btd = bDevice;
+        toSend = stream.toByteArray();
     }
 
     @Override
