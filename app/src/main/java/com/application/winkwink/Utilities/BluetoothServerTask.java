@@ -7,8 +7,15 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.UUID;
+
+/**
+ * Protocol:
+ * 4 byte: length n of the message
+ * 1 byte: command id
+ * n byte: message
+ */
+
 
 public class BluetoothServerTask implements Runnable{
 
@@ -45,6 +52,8 @@ public class BluetoothServerTask implements Runnable{
 
         try {
             InputStream is = bSocket.getInputStream();
+            byte[] lenMsg = new byte[4];
+            byte[] command = new byte[1];
 
             byte[] buffer = new byte[1024];
             int numBytes;

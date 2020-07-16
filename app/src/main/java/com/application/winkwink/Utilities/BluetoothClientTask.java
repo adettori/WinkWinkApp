@@ -4,19 +4,29 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.util.UUID;
+
+/**
+ * Protocol:
+ * 4 byte: length n of the message
+ * 1 byte: command id
+ * n byte: message
+ */
 
 public class BluetoothClientTask implements Runnable {
 
     UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
     BluetoothDevice btd;
-    byte[] toSend;
+    byte[] toSend = null;
+    Uri dataUri = null;
 
     public BluetoothClientTask(BluetoothDevice bDevice, byte[] data) {
 
@@ -24,17 +34,25 @@ public class BluetoothClientTask implements Runnable {
         toSend = data;
     }
 
-    public BluetoothClientTask(BluetoothDevice bDevice, Bitmap data) {
-
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        data.compress(Bitmap.CompressFormat.PNG, 100, stream);
+    public BluetoothClientTask(BluetoothDevice bDevice, Uri dataLoc) {
 
         btd = bDevice;
-        toSend = stream.toByteArray();
+        dataUri = dataLoc;
+
     }
 
     @Override
     public void run() {
+
+        if(toSend == null && dataUri != null) {
+
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            Bitmap data = retrieveBitmap(dataUri);
+
+            data.compress(Bitmap.CompressFormat.PNG, 100, stream);
+
+            toSend = stream.toByteArray();
+        }
 
         try (BluetoothSocket bs = btd.createRfcommSocketToServiceRecord(myId)) {
 
@@ -57,4 +75,21 @@ public class BluetoothClientTask implements Runnable {
             e.printStackTrace();
         }
     }
+
+    private Bitmap retrieveBitmap(Uri loc) {
+
+        Bitmap result = null;
+
+        try {
+            FileInputStream fileStream = new FileInputStream(loc.getPath());
+
+             result = BitmapFactory.decodeStream(fileStream);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
 }
+

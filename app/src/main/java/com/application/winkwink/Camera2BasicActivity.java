@@ -22,6 +22,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.ImageFormat;
@@ -41,6 +42,7 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -81,6 +83,7 @@ public class Camera2BasicActivity extends AppCompatActivity
      */
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_CAMERA_PERMISSION = 1;
+    private static final int CAMERA_RESULT_SUCCESS = 20;
     private static final String FRAGMENT_DIALOG = "dialog";
 
     static {
@@ -244,10 +247,22 @@ public class Camera2BasicActivity extends AppCompatActivity
         @Override
         public void onImageAvailable(ImageReader reader) {
 
-            // Orientation
-            int rotation = getWindowManager().getDefaultDisplay().getRotation();
+            Image face = reader.acquireLatestImage();
 
-            mFaceDetector.detect(reader.acquireNextImage(), getOrientation(rotation));
+            Uri imageLoc = Uri.parse(mFile.getAbsolutePath());
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("faceLocation", imageLoc);
+            resultIntent.putExtra("targetDevice",
+                    getIntent().getParcelableExtra("targetDevice"));
+
+            setResult(CAMERA_RESULT_SUCCESS, resultIntent);
+
+            // Orientation
+            // int rotation = getWindowManager().getDefaultDisplay().getRotation();
+
+            mBackgroundHandler.post(new ImageSaver(face, mFile));
+
+            finish();
         }
 
     };
@@ -415,8 +430,6 @@ public class Camera2BasicActivity extends AppCompatActivity
         }
     }
 
-    private FacialFeaturesDetector mFaceDetector;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -424,8 +437,7 @@ public class Camera2BasicActivity extends AppCompatActivity
 
         setContentView(R.layout.camera2_screen);
         findViewById(R.id.picture).setOnClickListener(this);
-        mTextureView = (AutoFitTextureView) findViewById(R.id.texture);
-        mFaceDetector = new FacialFeaturesDetector(this);
+        mTextureView = findViewById(R.id.texture);
         mFile = new File(getExternalFilesDir(null), "pic.jpg");
     }
 
@@ -515,10 +527,10 @@ public class Camera2BasicActivity extends AppCompatActivity
 
                 // For still image captures, we use the largest available size.
                 Size largest = Collections.max(
-                        Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)),
+                        Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
                         new CompareSizesByArea());
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                        ImageFormat.YUV_420_888, /*maxImages*/2);
+                        ImageFormat.JPEG, /*maxImages*/2);
                 mImageReader.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler);
 
@@ -833,8 +845,8 @@ public class Camera2BasicActivity extends AppCompatActivity
                     CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
 
             // Orientation
-            //int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-            //captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
+            int rotation = getWindowManager().getDefaultDisplay().getRotation();
+            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
 
             CameraCaptureSession.CaptureCallback CaptureCallback
                     = new CameraCaptureSession.CaptureCallback() {
