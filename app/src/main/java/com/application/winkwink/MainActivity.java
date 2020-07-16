@@ -45,16 +45,10 @@ import com.google.mlkit.vision.face.FaceDetectorOptions;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
-        CompoundButton.OnCheckedChangeListener, OnSuccessListener<List<Face>>, OnFailureListener {
+        OnSuccessListener<List<Face>>, OnFailureListener {
+    
+    private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 1;
 
-    private static final int DISCOVERY_DURATION_REQUEST = 120; //Seconds
-    private static final int REQUEST_DISCOVERABLE_ID = 1;
-    private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 2;
-
-    private Switch btSwitch;
-    private BluetoothAdapter bta;
-    private BluetoothToggleReceiver br;
-    private IntentFilter broadcastFilter;
     private FaceDetector faceDet;
 
     @Override
@@ -63,43 +57,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setContentView(R.layout.main_menu);
 
-        btSwitch = findViewById(R.id.bt_switch);
-        btSwitch.setOnCheckedChangeListener(this);
-
-        bta = BluetoothAdapter.getDefaultAdapter();
-
-        br = new BluetoothToggleReceiver(btSwitch);
-
-        broadcastFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        broadcastFilter.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
-
         FaceDetectorOptions faceOpt = new FaceDetectorOptions.Builder()
                 .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
                 .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
                 .build();
 
         faceDet = FaceDetection.getClient(faceOpt);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        //Forces the synchronisation of the toggle
-        btSwitch.setChecked(false);
-        if(bta != null &&
-                bta.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
-            btSwitch.setChecked(true);
-
-
-        this.registerReceiver(br, broadcastFilter);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        this.unregisterReceiver(br);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -115,42 +78,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     .replace(R.id.fragment_container, LobbyFragment.newInstance())
                     .addToBackStack("LOBBY_TRANSITION")
                     .commit();
-        }
-    }
-
-    protected void onActivityResult(int code, int res, Intent data) {
-        super.onActivityResult(code, res, data);
-
-        if (code == REQUEST_DISCOVERABLE_ID) {
-            if (res == RESULT_CANCELED) {
-                btSwitch.setChecked(false);
-            }
-        }
-    }
-
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-        if(buttonView == btSwitch) {
-
-            if(isChecked &&
-                    bta != null &&
-                    bta.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
-
-                Intent i = new Intent();
-                i.setAction(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-                i.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,
-                        DISCOVERY_DURATION_REQUEST);
-                startActivityForResult(i, REQUEST_DISCOVERABLE_ID);
-
-            } else if (!isChecked &&
-                    bta != null &&
-                    bta.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
-
-                //TODO
-                //Show toast to explain that it will stop being discoverable in x seconds
-                btSwitch.setChecked(true);
-            }
         }
     }
 
@@ -223,37 +150,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onFailure(@NonNull Exception e) {
 
-    }
-
-    private static class BluetoothToggleReceiver extends BroadcastReceiver {
-
-        Switch bluetoothSwitch;
-
-        public BluetoothToggleReceiver(Switch switchButton) {
-            super();
-
-            bluetoothSwitch = switchButton;
-        }
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-            if(BluetoothAdapter.ACTION_STATE_CHANGED.equals(intent.getAction()) &&
-                intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1) ==
-                        BluetoothAdapter.STATE_OFF) {
-
-                bluetoothSwitch.setChecked(false);
-            } else if(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED.equals(intent.getAction())) {
-
-                if(intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, -1)
-                    != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
-
-                    bluetoothSwitch.setChecked(false);
-                else if(intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, -1)
-                    == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
-
-                    bluetoothSwitch.setChecked(true);
-            }
-        }
     }
 }
