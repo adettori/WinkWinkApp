@@ -26,9 +26,6 @@ import com.application.winkwink.Utilities.BluetoothClientTask;
 
 import java.util.ArrayList;
 
-//private FacialFeaturesDetector mFaceDetector;
-//mFaceDetector = new FacialFeaturesDetector(this);
-//mFaceDetector.detect(face, getOrientation(rotation));
 
 public class BluetoothListFragment extends Fragment
         implements View.OnClickListener {
@@ -36,6 +33,8 @@ public class BluetoothListFragment extends Fragment
     private static final int REQUEST_DISCOVER_BLUETOOTH_ENABLE_ID = 10;
     private static final int REQUEST_BOND_BLUETOOTH_ENABLE_ID = 11;
     private static final int REQUEST_CAMERA2_ACTIVITY_ID = 12;
+
+    private Context context;
 
     private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
@@ -51,10 +50,12 @@ public class BluetoothListFragment extends Fragment
     private BluetoothDevice lastRefDev;
     private Thread btSenderThread;
 
-    public BluetoothListFragment() {}
+    public BluetoothListFragment(Context c) {
+        context = c;
+    }
 
-    public static BluetoothListFragment newInstance() {
-        return new BluetoothListFragment();
+    public static BluetoothListFragment newInstance(Context c) {
+        return new BluetoothListFragment(c);
     }
 
     @Override
@@ -84,7 +85,7 @@ public class BluetoothListFragment extends Fragment
 
         recyclerView.setHasFixedSize(true);
 
-        layoutManager = new LinearLayoutManager(getContext());
+        layoutManager = new LinearLayoutManager(context);
         recyclerView.setLayoutManager(layoutManager);
 
         mAdapter = new BluetoothRecycleAdapter(adapterDataset, this);
@@ -141,7 +142,7 @@ public class BluetoothListFragment extends Fragment
             }
 
 
-            Intent i = new Intent(getContext(), Camera2BasicActivity.class);
+            Intent i = new Intent(context, Camera2BasicActivity.class);
             i.putExtra("targetDevice", btDevice);
 
             bta.cancelDiscovery();

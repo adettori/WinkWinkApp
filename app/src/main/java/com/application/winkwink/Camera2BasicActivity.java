@@ -513,9 +513,9 @@ public class Camera2BasicActivity extends AppCompatActivity
                 assert afAvailableModes != null;
 
                 if (afAvailableModes.length == 0 || (afAvailableModes.length == 1
-                        && afAvailableModes[0] == CameraMetadata.CONTROL_AF_MODE_OFF)) {
+                        && afAvailableModes[0] == CameraMetadata.CONTROL_AF_MODE_OFF))
                     mAutoFocusSupported = false;
-                } else {
+                else {
                     mAutoFocusSupported = true;
                 }
 

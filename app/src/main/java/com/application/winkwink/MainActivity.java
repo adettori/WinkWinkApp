@@ -17,18 +17,11 @@
 package com.application.winkwink;
 
 import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.CompoundButton;
-import android.widget.Switch;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -46,7 +39,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
         OnSuccessListener<List<Face>>, OnFailureListener {
-    
+
     private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 1;
 
     private FaceDetector faceDet;
@@ -88,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (grantResults.length > 0 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
+                        .replace(R.id.fragment_container, BluetoothListFragment.newInstance(this))
                         .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                         .commit();
             } else {
@@ -110,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 PackageManager.PERMISSION_GRANTED) {
 
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
+                    .replace(R.id.fragment_container, BluetoothListFragment.newInstance(this))
                     .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                     .commit();
         } else {
@@ -138,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         /*
-        *         InputImage toDetect = InputImage.fromMediaImage(input, imageRotation);
+        InputImage toDetect = InputImage.fromMediaImage(input, imageRotation);
 
         //input.close();
 
