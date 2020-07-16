@@ -14,7 +14,6 @@ public class MenuFragment extends Fragment {
 
     private Button findButton;
     private Button hostButton;
-    private Button cameraButton;
 
     public MenuFragment() {
         // Required empty public constructor
@@ -40,9 +39,6 @@ public class MenuFragment extends Fragment {
 
         hostButton = activity.findViewById(R.id.host_button);
         hostButton.setOnClickListener((View.OnClickListener) getActivity());
-
-        cameraButton = activity.findViewById((R.id.camera_button));
-        cameraButton.setOnClickListener((View.OnClickListener) getActivity());
     }
 
     @Override

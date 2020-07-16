@@ -1,4 +1,4 @@
-package com.application.winkwink.BluetoothUtilities;
+package com.application.winkwink.Utilities;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.UUID;
 
 /**
@@ -21,6 +22,9 @@ import java.util.UUID;
  */
 
 public class BluetoothClientTask implements Runnable {
+
+    private static final int PROTOCOL_LEN = 4;
+    private static final int PROTOCOL_COMMAND = 1;
 
     UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
@@ -38,7 +42,6 @@ public class BluetoothClientTask implements Runnable {
 
         btd = bDevice;
         dataUri = dataLoc;
-
     }
 
     @Override
@@ -68,8 +71,14 @@ public class BluetoothClientTask implements Runnable {
 
         try {
             OutputStream os = bs.getOutputStream();
+            byte[] msg_len;
 
-            os.write(toSend);
+            ByteBuffer b = ByteBuffer.allocate(toSend.length + PROTOCOL_LEN + PROTOCOL_COMMAND);
+            b.putInt(toSend.length);
+            b.put((byte)0);
+            b.put(toSend);
+
+            os.write(b.array());
             os.flush();
         } catch (IOException e) {
             e.printStackTrace();

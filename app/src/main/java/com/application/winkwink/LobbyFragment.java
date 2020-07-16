@@ -4,21 +4,18 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.application.winkwink.BluetoothUtilities.BluetoothServerTask;
+import com.application.winkwink.Utilities.BluetoothServerTask;
 
 public class LobbyFragment extends Fragment {
 
     BluetoothServerTask bst;
     Thread serverT;
 
-    public LobbyFragment() {
-        bst = new BluetoothServerTask();
-    }
+    public LobbyFragment() {}
 
     public static LobbyFragment newInstance() {
         return new LobbyFragment();
@@ -49,5 +46,10 @@ public class LobbyFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_lobby, container, false);
+    }
+
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+
+        bst = new BluetoothServerTask(getActivity());
     }
 }

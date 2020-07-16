@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,15 +22,20 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.application.winkwink.BluetoothUtilities.BluetoothClientTask;
+import com.application.winkwink.Utilities.BluetoothClientTask;
 
 import java.util.ArrayList;
+
+//private FacialFeaturesDetector mFaceDetector;
+//mFaceDetector = new FacialFeaturesDetector(this);
+//mFaceDetector.detect(face, getOrientation(rotation));
 
 public class BluetoothListFragment extends Fragment
         implements View.OnClickListener {
 
     private static final int REQUEST_DISCOVER_BLUETOOTH_ENABLE_ID = 10;
     private static final int REQUEST_BOND_BLUETOOTH_ENABLE_ID = 11;
+    private static final int REQUEST_CAMERA2_ACTIVITY_ID = 12;
 
     private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
@@ -134,14 +140,13 @@ public class BluetoothListFragment extends Fragment
                     btDevice.createBond();
             }
 
-            BluetoothClientTask sendTask = new BluetoothClientTask(
-                    btDevice, "ciaone a tutti".getBytes());
 
-            if(btSenderThread == null || !btSenderThread.isAlive()) {
-                bta.cancelDiscovery();
-                btSenderThread = new Thread(sendTask);
-                btSenderThread.start();
-            }
+            Intent i = new Intent(getContext(), Camera2BasicActivity.class);
+            i.putExtra("targetDevice", btDevice);
+
+            bta.cancelDiscovery();
+            startActivityForResult(i, REQUEST_CAMERA2_ACTIVITY_ID);
+
         }
 
     }
@@ -167,6 +172,19 @@ public class BluetoothListFragment extends Fragment
                     lastRefDev.createBond();
 
                 lastRefDev = null;
+            }
+        } else if(code == REQUEST_CAMERA2_ACTIVITY_ID) {
+
+            Uri faceUri = data.getParcelableExtra("faceLocation");
+            BluetoothDevice btDevice = data.getParcelableExtra("targetDevice");
+
+            assert faceUri != null;
+
+            BluetoothClientTask sendTask = new BluetoothClientTask(btDevice, faceUri);
+
+            if(btSenderThread == null || !btSenderThread.isAlive()) {
+                btSenderThread = new Thread(sendTask);
+                btSenderThread.start();
             }
         }
     }
