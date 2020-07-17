@@ -22,8 +22,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.application.winkwink.Utilities.BluetoothFileClient;
+import com.application.winkwink.Utilities.BluetoothGuestClient;
 
+import java.io.File;
 import java.util.ArrayList;
 
 
@@ -34,7 +35,9 @@ public class BluetoothListFragment extends Fragment
     private static final int REQUEST_BOND_BLUETOOTH_ENABLE_ID = 11;
     private static final int REQUEST_CAMERA2_ACTIVITY_ID = 12;
 
-    private Context context;
+    private static final String saveName = "LastFace.jpeg";
+
+    private File saveFile;
 
     private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
@@ -50,12 +53,10 @@ public class BluetoothListFragment extends Fragment
     private BluetoothDevice lastRefDev;
     private Thread btSenderThread;
 
-    public BluetoothListFragment(Context c) {
-        context = c;
-    }
+    public BluetoothListFragment() {}
 
     public static BluetoothListFragment newInstance(Context c) {
-        return new BluetoothListFragment(c);
+        return new BluetoothListFragment();
     }
 
     @Override
@@ -68,6 +69,8 @@ public class BluetoothListFragment extends Fragment
 
         broadcastFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         broadcastFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+
+        saveFile = new File(getActivity().getExternalFilesDir(null), saveName);
     }
 
     @Override
@@ -85,7 +88,7 @@ public class BluetoothListFragment extends Fragment
 
         recyclerView.setHasFixedSize(true);
 
-        layoutManager = new LinearLayoutManager(context);
+        layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
         mAdapter = new BluetoothRecycleAdapter(adapterDataset, this);
@@ -141,12 +144,16 @@ public class BluetoothListFragment extends Fragment
                     btDevice.createBond();
             }
 
+            if(btDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
+                Intent i = new Intent(getContext(), Camera2BasicActivity.class);
+                i.putExtra("targetDevice", btDevice);
+                i.putExtra("saveLocation",
+                        new Uri.Builder().appendPath(saveFile.toString()).build());
 
-            Intent i = new Intent(context, Camera2BasicActivity.class);
-            i.putExtra("targetDevice", btDevice);
-
-            bta.cancelDiscovery();
-            startActivityForResult(i, REQUEST_CAMERA2_ACTIVITY_ID);
+                assert btDevice != null;
+                bta.cancelDiscovery();
+                startActivityForResult(i, REQUEST_CAMERA2_ACTIVITY_ID);
+            }
 
         }
 
@@ -176,12 +183,11 @@ public class BluetoothListFragment extends Fragment
             }
         } else if(code == REQUEST_CAMERA2_ACTIVITY_ID) {
 
-            Uri faceUri = data.getParcelableExtra("faceLocation");
             BluetoothDevice btDevice = data.getParcelableExtra("targetDevice");
 
-            assert faceUri != null;
+            assert btDevice != null;
 
-            BluetoothFileClient sendTask = new BluetoothFileClient(btDevice, faceUri);
+            BluetoothGuestClient sendTask = new BluetoothGuestClient(btDevice, saveFile);
 
             if(btSenderThread == null || !btSenderThread.isAlive()) {
                 btSenderThread = new Thread(sendTask);

@@ -20,6 +20,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -66,6 +67,7 @@ import androidx.fragment.app.Fragment;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -233,11 +235,6 @@ public class Camera2BasicActivity extends AppCompatActivity
     private ImageReader mImageReader;
 
     /**
-     * This is the output file for our picture.
-     */
-    private File mFile;
-
-    /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
      */
@@ -248,19 +245,22 @@ public class Camera2BasicActivity extends AppCompatActivity
         public void onImageAvailable(ImageReader reader) {
 
             Image face = reader.acquireLatestImage();
+            Intent oldIntent = getIntent();
 
-            Uri imageLoc = Uri.parse(mFile.getAbsolutePath());
+            Uri saveLoc = oldIntent.getParcelableExtra("saveLocation");
+
             Intent resultIntent = new Intent();
-            resultIntent.putExtra("faceLocation", imageLoc);
-            resultIntent.putExtra("targetDevice",
-                    getIntent().getParcelableExtra("targetDevice"));
+            BluetoothDevice btDevice = oldIntent.getParcelableExtra("targetDevice");
+            resultIntent.putExtra("targetDevice", btDevice);
 
             setResult(CAMERA_RESULT_SUCCESS, resultIntent);
 
             // Orientation
             // int rotation = getWindowManager().getDefaultDisplay().getRotation();
 
-            mBackgroundHandler.post(new ImageSaver(face, mFile));
+            if(saveLoc != null) {
+                mBackgroundHandler.post(new ImageSaver(face, new File(saveLoc.getPath())));
+            }
 
             finish();
         }
@@ -438,7 +438,6 @@ public class Camera2BasicActivity extends AppCompatActivity
         setContentView(R.layout.camera2_screen);
         findViewById(R.id.picture).setOnClickListener(this);
         mTextureView = findViewById(R.id.texture);
-        mFile = new File(getExternalFilesDir(null), "pic.jpg");
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -855,8 +854,8 @@ public class Camera2BasicActivity extends AppCompatActivity
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session,
                                                @NonNull CaptureRequest request,
                                                @NonNull TotalCaptureResult result) {
-                    showToast("Saved: " + mFile);
-                    Log.d(TAG, mFile.toString());
+                    showToast("Photo captured");
+                    Log.d(TAG, "Photo captured");
                     unlockFocus();
                 }
             };
@@ -904,11 +903,8 @@ public class Camera2BasicActivity extends AppCompatActivity
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.picture: {
-                takePicture();
-                break;
-            }
+        if (view.getId() == R.id.picture) {
+            takePicture();
         }
     }
 

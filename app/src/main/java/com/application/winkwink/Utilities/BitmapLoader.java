@@ -2,7 +2,6 @@ package com.application.winkwink.Utilities;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.widget.ImageView;
 
 import java.io.File;
@@ -13,23 +12,23 @@ import java.lang.ref.WeakReference;
 public class BitmapLoader implements Runnable {
 
     private WeakReference<ImageView> imgView;
-    private Uri imgLoc;
 
-    BitmapLoader(ImageView view, Uri loc) {
+    private File saveLoc;
+
+    BitmapLoader(ImageView view, File dirFile) {
 
         imgView = new WeakReference<>(view);
-        imgLoc = loc;
+        saveLoc = dirFile;
     }
 
     @Override
     public void run() {
 
-        File bitmapFile = new File(imgLoc.getPath());
         final ImageView tmp = imgView.get();
         final Bitmap result;
 
         try {
-            FileInputStream is = new FileInputStream(bitmapFile);
+            FileInputStream is = new FileInputStream(saveLoc);
             result = BitmapFactory.decodeStream(is);
 
             if(tmp != null)

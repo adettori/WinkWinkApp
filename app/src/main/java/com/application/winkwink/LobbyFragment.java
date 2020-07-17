@@ -14,15 +14,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.Switch;
 
-import com.application.winkwink.Utilities.BluetoothFileServer;
+import com.application.winkwink.Utilities.BluetoothHostServer;
+
+import java.io.File;
 
 public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedChangeListener {
 
     private static final int REQUEST_DISCOVERABLE_ID = 30;
     private static final int DISCOVERY_DURATION_REQUEST = 120; //Seconds
-    private static final String saveFile = "LastFace.jpeg";
+    private static final String saveName = "LastFace.jpeg";
 
     private Switch btSwitch;
 
@@ -30,7 +33,7 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
     private BluetoothToggleReceiver br;
     private IntentFilter broadcastFilter;
 
-    private BluetoothFileServer bst;
+    private BluetoothHostServer lbs;
     private Thread serverT;
 
     public LobbyFragment() {}
@@ -53,7 +56,7 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
     public void onResume() {
         super.onResume();
 
-        serverT = new Thread(bst);
+        serverT = new Thread(lbs);
         serverT.start();
 
         //Forces the synchronisation of the toggle
@@ -82,7 +85,9 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
 
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
-        bst = new BluetoothFileServer(getActivity().getFilesDir(), saveFile);
+        File saveFile = new File(getActivity().getExternalFilesDir(null), saveName);
+
+        lbs = new BluetoothHostServer(saveFile, (ImageView) view.findViewById(R.id.face_view));
 
         btSwitch = view.findViewById(R.id.bt_switch);
         btSwitch.setOnCheckedChangeListener(this);

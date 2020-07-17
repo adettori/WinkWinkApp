@@ -5,8 +5,10 @@ import android.bluetooth.BluetoothSocket;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -21,7 +23,7 @@ import java.util.UUID;
  * n byte: message
  */
 
-public class BluetoothFileClient implements Runnable {
+public class BluetoothGuestClient implements Runnable {
 
     private static final int PROTOCOL_LEN = 4;
     private static final int PROTOCOL_COMMAND = 1;
@@ -30,27 +32,29 @@ public class BluetoothFileClient implements Runnable {
 
     BluetoothDevice btd;
     byte[] toSend = null;
-    Uri dataUri = null;
+    File dataFile = null;
 
-    public BluetoothFileClient(BluetoothDevice bDevice, byte[] data) {
+    public BluetoothGuestClient(BluetoothDevice bDevice, byte[] data) {
 
         btd = bDevice;
         toSend = data;
     }
 
-    public BluetoothFileClient(BluetoothDevice bDevice, Uri dataLoc) {
+    public BluetoothGuestClient(BluetoothDevice bDevice, File saveFile) {
 
         btd = bDevice;
-        dataUri = dataLoc;
+        dataFile = saveFile;
     }
 
     @Override
     public void run() {
 
-        if(toSend == null && dataUri != null) {
+        if(toSend == null && dataFile != null) {
 
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            Bitmap data = retrieveBitmap(dataUri);
+            Bitmap data = retrieveBitmap(dataFile);
+
+            assert data != null;
 
             data.compress(Bitmap.CompressFormat.PNG, 100, stream);
 
@@ -85,12 +89,13 @@ public class BluetoothFileClient implements Runnable {
         }
     }
 
-    private Bitmap retrieveBitmap(Uri loc) {
+    private Bitmap retrieveBitmap(File loc) {
 
         Bitmap result = null;
 
         try {
-            FileInputStream fileStream = new FileInputStream(loc.getPath());
+            Log.e("test", loc.toString());
+            FileInputStream fileStream = new FileInputStream(loc);
 
              result = BitmapFactory.decodeStream(fileStream);
 

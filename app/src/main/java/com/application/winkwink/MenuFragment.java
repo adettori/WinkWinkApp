@@ -12,12 +12,7 @@ import android.widget.Button;
 
 public class MenuFragment extends Fragment {
 
-    private Button findButton;
-    private Button hostButton;
-
-    public MenuFragment() {
-        // Required empty public constructor
-    }
+    public MenuFragment() {}
 
     public static MenuFragment newInstance() { return new MenuFragment(); }
 
@@ -34,10 +29,10 @@ public class MenuFragment extends Fragment {
 
         assert activity != null;
 
-        findButton = activity.findViewById((R.id.find_button));
+        Button findButton = activity.findViewById((R.id.find_button));
         findButton.setOnClickListener((View.OnClickListener) getActivity());
 
-        hostButton = activity.findViewById(R.id.host_button);
+        Button hostButton = activity.findViewById(R.id.host_button);
         hostButton.setOnClickListener((View.OnClickListener) getActivity());
     }
 
