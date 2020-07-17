@@ -47,10 +47,10 @@ public class BluetoothGuestClient implements Runnable {
         imgToSend = img;
     }
 
-    public BluetoothGuestClient(BluetoothDevice bDevice, File saveFile) {
+    public BluetoothGuestClient(BluetoothDevice bDevice, File savedFile) {
 
         btd = bDevice;
-        dataFile = saveFile;
+        dataFile = savedFile;
     }
 
     @Override

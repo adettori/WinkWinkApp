@@ -7,7 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,6 +24,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.application.winkwink.Utilities.BluetoothGuestClient;
 
+import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 
 
@@ -144,7 +146,7 @@ public class BluetoothListFragment extends Fragment
                 Fragment cameraFragment = CameraXFragment.newInstance();
 
                 // Deprecated... but the alternative is still in alpha... great!
-                //cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
+                cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
 
                 getParentFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, cameraFragment)
@@ -191,10 +193,12 @@ public class BluetoothListFragment extends Fragment
 
             assert lastRefDev != null;
 
-            Bitmap img = data.getParcelableExtra("guestFaceBitmap");
+            Uri faceURI = data.getParcelableExtra("guestFaceUri");
             //int rotation = data.getParcelableExtra("guestFaceRotation");
 
-            BluetoothGuestClient sendTask = new BluetoothGuestClient(lastRefDev, img);
+            assert faceURI != null;
+            BluetoothGuestClient sendTask =
+                    new BluetoothGuestClient(lastRefDev, new File(faceURI.getPath()));
 
             if(btSenderThread == null || !btSenderThread.isAlive()) {
                 btSenderThread = new Thread(sendTask);

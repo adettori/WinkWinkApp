@@ -1,7 +1,9 @@
 package com.application.winkwink;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -160,6 +162,13 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                         String msg = "Photo capture succeeded";
                         Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
                         Log.d(TAG, msg);
+
+                        Intent resultIntent = new Intent();
+                        resultIntent.putExtra("guestFaceUri", savedUri);
+                        getTargetFragment().onActivityResult(getTargetRequestCode(),
+                                Activity.RESULT_OK, resultIntent);
+
+                        getParentFragmentManager().popBackStack();
                     }
         });
     }
