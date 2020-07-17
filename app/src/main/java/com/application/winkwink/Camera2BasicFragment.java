@@ -20,12 +20,13 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -43,7 +44,6 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -51,23 +51,24 @@ import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
+import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,7 +78,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-public class Camera2BasicActivity extends AppCompatActivity
+public class Camera2BasicFragment extends Fragment
         implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
     /**
@@ -85,7 +86,6 @@ public class Camera2BasicActivity extends AppCompatActivity
      */
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_CAMERA_PERMISSION = 1;
-    private static final int CAMERA_RESULT_SUCCESS = 20;
     private static final String FRAGMENT_DIALOG = "dialog";
 
     static {
@@ -134,6 +134,10 @@ public class Camera2BasicActivity extends AppCompatActivity
      * Max preview height that is guaranteed by Camera2 API
      */
     private static final int MAX_PREVIEW_HEIGHT = 1080;
+
+    public Camera2BasicFragment() {}
+
+    public static Fragment newInstance() { return new Camera2BasicFragment(); }
 
     /**
      * {@link TextureView.SurfaceTextureListener} handles several lifecycle events on a
@@ -215,7 +219,7 @@ public class Camera2BasicActivity extends AppCompatActivity
             mCameraOpenCloseLock.release();
             cameraDevice.close();
             mCameraDevice = null;
-            finish();
+            getParentFragmentManager().popBackStack();
         }
     };
 
@@ -244,25 +248,34 @@ public class Camera2BasicActivity extends AppCompatActivity
         @Override
         public void onImageAvailable(ImageReader reader) {
 
+            Activity activity = getActivity();
             Image face = reader.acquireLatestImage();
-            Intent oldIntent = getIntent();
+            int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
 
-            Uri saveLoc = oldIntent.getParcelableExtra("saveLocation");
+            //TODO
+            // It doesn't seem to slow down execution but better move this code to a separate thread
+            //Image to Bitmap converter
+            //https://stackoverflow.com/questions/41775968/how-to-convert-android-media-image-to-bitmap-object/41776098
+            ByteBuffer buffer = face.getPlanes()[0].getBuffer();
+            byte[] bytes = new byte[buffer.capacity()];
+            buffer.get(bytes);
+            Bitmap bitmapImage =
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
+
+            face.close();
 
             Intent resultIntent = new Intent();
-            BluetoothDevice btDevice = oldIntent.getParcelableExtra("targetDevice");
-            resultIntent.putExtra("targetDevice", btDevice);
+            resultIntent.
+                    putExtra("guestFaceBitmap", bitmapImage)
+                    .putExtra("guestFaceRotation", rotation);
 
-            setResult(CAMERA_RESULT_SUCCESS, resultIntent);
+            //if(saveLoc != null) {
+            //    mBackgroundHandler.post(new ImageSaver(face, new File(saveLoc.getPath())));
+            //}
 
-            // Orientation
-            // int rotation = getWindowManager().getDefaultDisplay().getRotation();
-
-            if(saveLoc != null) {
-                mBackgroundHandler.post(new ImageSaver(face, new File(saveLoc.getPath())));
-            }
-
-            finish();
+            getTargetFragment().onActivityResult(getTargetRequestCode(), Activity.RESULT_OK,
+                    resultIntent);
+            getParentFragmentManager().popBackStack();
         }
 
     };
@@ -367,16 +380,22 @@ public class Camera2BasicActivity extends AppCompatActivity
 
     };
 
+
     /**
      * Shows a {@link Toast} on the UI thread.
      *
      * @param text The message to show
      */
     private void showToast(final String text) {
-        runOnUiThread(new Runnable() {
+
+        final Activity activity = getActivity();
+
+        assert activity != null;
+
+        activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(Camera2BasicActivity.this, text, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(activity, text, Toast.LENGTH_SHORT).show();
                 }
             });
     }
@@ -431,13 +450,22 @@ public class Camera2BasicActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+    }
 
-        setContentView(R.layout.camera2_screen);
-        findViewById(R.id.picture).setOnClickListener(this);
-        mTextureView = findViewById(R.id.texture);
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+        return inflater.inflate(R.layout.camera2_screen, container, false);
+    }
+
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+
+        view.findViewById(R.id.picture).setOnClickListener(this);
+        mTextureView = view.findViewById(R.id.texture);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -467,7 +495,7 @@ public class Camera2BasicActivity extends AppCompatActivity
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void requestCameraPermission() {
         if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
-            new ConfirmationDialog().show(getSupportFragmentManager(), FRAGMENT_DIALOG);
+            new ConfirmationDialog().show(getChildFragmentManager(), FRAGMENT_DIALOG);
         } else {
             requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
         }
@@ -479,7 +507,7 @@ public class Camera2BasicActivity extends AppCompatActivity
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
             if (grantResults.length != 1 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 ErrorDialog.newInstance(getString(R.string.request_permission))
-                        .show(getSupportFragmentManager(), FRAGMENT_DIALOG);
+                        .show(getChildFragmentManager(), FRAGMENT_DIALOG);
             }
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -494,7 +522,11 @@ public class Camera2BasicActivity extends AppCompatActivity
      */
     @SuppressWarnings("SuspiciousNameCombination")
     private void setUpCameraOutputs(int width, int height) {
-        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+
+        Activity activity = getActivity();
+
+        assert activity != null;
+        CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
         try {
             for (String cameraId : manager.getCameraIdList()) {
                 CameraCharacteristics characteristics
@@ -535,7 +567,7 @@ public class Camera2BasicActivity extends AppCompatActivity
 
                 // Find out if we need to swap dimension to get the preview size relative to sensor
                 // coordinate.
-                int displayRotation = getWindowManager().getDefaultDisplay().getRotation();
+                int displayRotation = activity.getWindowManager().getDefaultDisplay().getRotation();
                 //noinspection ConstantConditions
                 mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
                 boolean swappedDimensions = false;
@@ -557,7 +589,7 @@ public class Camera2BasicActivity extends AppCompatActivity
                 }
 
                 Point displaySize = new Point();
-                getWindowManager().getDefaultDisplay().getSize(displaySize);
+                activity.getWindowManager().getDefaultDisplay().getSize(displaySize);
                 int rotatedPreviewWidth = width;
                 int rotatedPreviewHeight = height;
                 int maxPreviewWidth = displaySize.x;
@@ -604,23 +636,27 @@ public class Camera2BasicActivity extends AppCompatActivity
             // Currently an NPE is thrown when the Camera2API is used but not supported on the
             // device this code runs.
             ErrorDialog.newInstance(getString(R.string.camera_error))
-                    .show(getSupportFragmentManager(), FRAGMENT_DIALOG);
+                    .show(getChildFragmentManager(), FRAGMENT_DIALOG);
         }
     }
 
     /**
-     * Opens the camera specified by {@link Camera2BasicActivity#mCameraId}.
+     * Opens the camera specified by {@link Camera2BasicFragment#mCameraId}.
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void openCamera(int width, int height) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+
+        Activity activity = getActivity();
+
+        assert activity != null;
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             requestCameraPermission();
             return;
         }
         setUpCameraOutputs(width, height);
         configureTransform(width, height);
-        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
         try {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
@@ -748,10 +784,15 @@ public class Camera2BasicActivity extends AppCompatActivity
      * @param viewHeight The height of `mTextureView`
      */
     private void configureTransform(int viewWidth, int viewHeight) {
+
         if (null == mTextureView || null == mPreviewSize) {
             return;
         }
-        int rotation = getWindowManager().getDefaultDisplay().getRotation();
+
+        Activity activity = getActivity();
+
+        assert activity != null;
+        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
         Matrix matrix = new Matrix();
         RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
         RectF bufferRect = new RectF(0, 0, mPreviewSize.getHeight(), mPreviewSize.getWidth());
@@ -834,6 +875,8 @@ public class Camera2BasicActivity extends AppCompatActivity
                 return;
             }
 
+            Activity activity = getActivity();
+
             // This is the CaptureRequest.Builder that we use to take a picture.
             final CaptureRequest.Builder captureBuilder =
                     mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
@@ -844,7 +887,8 @@ public class Camera2BasicActivity extends AppCompatActivity
                     CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
 
             // Orientation
-            int rotation = getWindowManager().getDefaultDisplay().getRotation();
+            assert activity != null;
+            int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
 
             CameraCaptureSession.CaptureCallback CaptureCallback
@@ -985,11 +1029,14 @@ public class Camera2BasicActivity extends AppCompatActivity
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             final Activity activity = getActivity();
+
+            assert getArguments() != null;
             return new AlertDialog.Builder(activity)
                     .setMessage(getArguments().getString(ARG_MESSAGE))
                     .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
+                            assert activity != null;
                             activity.finish();
                         }
                     })
@@ -1012,6 +1059,7 @@ public class Camera2BasicActivity extends AppCompatActivity
                     .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            assert parent != null;
                             parent.requestPermissions(new String[]{Manifest.permission.CAMERA},
                                     REQUEST_CAMERA_PERMISSION);
                         }
@@ -1020,6 +1068,7 @@ public class Camera2BasicActivity extends AppCompatActivity
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
+                                    assert parent != null;
                                     Activity activity = parent.getActivity();
                                     if (activity != null) {
                                         activity.finish();

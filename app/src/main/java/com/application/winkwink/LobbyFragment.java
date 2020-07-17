@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -86,7 +87,11 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
 
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
-        File saveFile = new File(getActivity().getExternalFilesDir(null), saveName);
+        Activity activity = getActivity();
+
+        assert activity != null;
+
+        File saveFile = new File(activity.getExternalFilesDir(null), saveName);
 
         ImageView imgView = view.findViewById(R.id.face_view);
         Button btn = view.findViewById(R.id.go_button);
@@ -97,6 +102,7 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
         btSwitch.setOnCheckedChangeListener(this);
 
         br = new BluetoothToggleReceiver(btSwitch);
+
     }
 
     public void onActivityResult(int code, int res, Intent data) {

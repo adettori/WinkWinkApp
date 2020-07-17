@@ -7,7 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +33,7 @@ public class BluetoothListFragment extends Fragment
 
     private static final int REQUEST_DISCOVER_BLUETOOTH_ENABLE_ID = 10;
     private static final int REQUEST_BOND_BLUETOOTH_ENABLE_ID = 11;
-    private static final int REQUEST_CAMERA2_ACTIVITY_ID = 12;
+    private static final int REQUEST_CAMERA2_FRAGMENT_ID = 12;
 
     private static final String saveName = "LastFace.jpeg";
 
@@ -55,13 +55,15 @@ public class BluetoothListFragment extends Fragment
 
     public BluetoothListFragment() {}
 
-    public static BluetoothListFragment newInstance(Context c) {
+    public static BluetoothListFragment newInstance() {
         return new BluetoothListFragment();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Activity activity = getActivity();
 
         adapterDataset = new ArrayList<>();
 
@@ -70,7 +72,9 @@ public class BluetoothListFragment extends Fragment
         broadcastFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         broadcastFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 
-        saveFile = new File(getActivity().getExternalFilesDir(null), saveName);
+        assert activity != null;
+        saveFile = new File(activity.getExternalFilesDir(null), saveName);
+
     }
 
     @Override
@@ -96,6 +100,7 @@ public class BluetoothListFragment extends Fragment
 
         discoverButton = view.findViewById(R.id.discover_button);
         discoverButton.setOnClickListener(this);
+
     }
 
     @Override
@@ -131,6 +136,7 @@ public class BluetoothListFragment extends Fragment
         } else if(v.getId() == R.id.cv) {
 
             BluetoothDevice btDevice = (BluetoothDevice) v.getTag();
+            lastRefDev = btDevice;
 
             //Bluetooth adapter is already initialised if a cardview is presented
             if(!bta.isEnabled()) {
@@ -139,20 +145,30 @@ public class BluetoothListFragment extends Fragment
                 i.setAction(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(i, REQUEST_BOND_BLUETOOTH_ENABLE_ID);
 
-                lastRefDev = btDevice;
             } else if(btDevice.getBondState() == BluetoothDevice.BOND_NONE) {
                     btDevice.createBond();
             }
 
             if(btDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
-                Intent i = new Intent(getContext(), Camera2BasicActivity.class);
+
+                Fragment cameraFragment = Camera2BasicFragment.newInstance();
+
+                // Deprecated... but the alternative is still in alpha... great!
+                cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
+
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, cameraFragment)
+                        .addToBackStack("CAMERA_TRANSITION")
+                        .commit();
+/*
+                Intent i = new Intent(getContext(), Camera2BasicFragment.class);
                 i.putExtra("targetDevice", btDevice);
                 i.putExtra("saveLocation",
                         new Uri.Builder().appendPath(saveFile.toString()).build());
 
                 assert btDevice != null;
                 bta.cancelDiscovery();
-                startActivityForResult(i, REQUEST_CAMERA2_ACTIVITY_ID);
+                startActivityForResult(i, REQUEST_CAMERA2_ACTIVITY_ID);*/
             }
 
         }
@@ -181,13 +197,14 @@ public class BluetoothListFragment extends Fragment
 
                 lastRefDev = null;
             }
-        } else if(code == REQUEST_CAMERA2_ACTIVITY_ID && data != null) {
+        } else if(code == REQUEST_CAMERA2_FRAGMENT_ID && data != null) {
 
-            BluetoothDevice btDevice = data.getParcelableExtra("targetDevice");
+            assert lastRefDev != null;
 
-            assert btDevice != null;
+            Bitmap img = data.getParcelableExtra("guestFaceBitmap");
+            //int rotation = data.getParcelableExtra("guestFaceRotation");
 
-            BluetoothGuestClient sendTask = new BluetoothGuestClient(btDevice, saveFile);
+            BluetoothGuestClient sendTask = new BluetoothGuestClient(lastRefDev, img);
 
             if(btSenderThread == null || !btSenderThread.isAlive()) {
                 btSenderThread = new Thread(sendTask);

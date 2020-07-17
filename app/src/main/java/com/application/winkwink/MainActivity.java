@@ -44,8 +44,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 1;
 
-    private Bitmap faceGuest;
-    private Bitmap faceHost;
+    private Bitmap lastFaceGuest;
+    private Bitmap lastFaceHost;
     private FaceDetector faceDet;
 
     @Override
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (grantResults.length > 0 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, BluetoothListFragment.newInstance(this))
+                        .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
                         .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                         .commit();
             } else {
@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 PackageManager.PERMISSION_GRANTED) {
 
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, BluetoothListFragment.newInstance(this))
+                    .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
                     .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                     .commit();
         } else {
@@ -148,5 +148,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onFailure(@NonNull Exception e) {
 
+    }
+
+    public void setFaceGuest(Bitmap face) {
+
+        lastFaceGuest = face;
+    }
+
+    public void setFaceHost(Bitmap face) {
+
+        lastFaceHost = face;
+    }
+
+    public Bitmap getFaceGuest() {
+
+        return lastFaceGuest;
+    }
+
+    public Bitmap getFaceHost() {
+
+        return lastFaceHost;
     }
 }

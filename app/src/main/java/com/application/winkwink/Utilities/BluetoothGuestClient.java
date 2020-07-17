@@ -33,11 +33,18 @@ public class BluetoothGuestClient implements Runnable {
     BluetoothDevice btd;
     byte[] toSend = null;
     File dataFile = null;
+    Bitmap imgToSend = null;
 
     public BluetoothGuestClient(BluetoothDevice bDevice, byte[] data) {
 
         btd = bDevice;
         toSend = data;
+    }
+
+    public BluetoothGuestClient(BluetoothDevice bDevice, Bitmap img) {
+
+        btd = bDevice;
+        imgToSend = img;
     }
 
     public BluetoothGuestClient(BluetoothDevice bDevice, File saveFile) {
@@ -57,6 +64,13 @@ public class BluetoothGuestClient implements Runnable {
             assert data != null;
 
             data.compress(Bitmap.CompressFormat.PNG, 100, stream);
+
+            toSend = stream.toByteArray();
+        } else if(toSend == null && imgToSend != null) {
+
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+            imgToSend.compress(Bitmap.CompressFormat.PNG, 100, stream);
 
             toSend = stream.toByteArray();
         }
