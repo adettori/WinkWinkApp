@@ -18,6 +18,7 @@ package com.application.winkwink;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,6 +31,7 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.Face;
 import com.google.mlkit.vision.face.FaceDetection;
 import com.google.mlkit.vision.face.FaceDetector;
@@ -42,6 +44,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 1;
 
+    private Bitmap faceGuest;
+    private Bitmap faceHost;
     private FaceDetector faceDet;
 
     @Override
@@ -113,6 +117,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    public void detectFaces(Bitmap input) {
+
+        InputImage toDetect = InputImage.fromBitmap(input, 0);
+
+        faceDet.process(toDetect)
+                .addOnSuccessListener(this)
+                .addOnFailureListener(this);
+    }
+
     @Override
     public void onSuccess(List<Face> faces) {
         Log.e("SUP", "Faces detected: " + faces.size());
@@ -130,14 +143,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     + face.getSmilingProbability());
         }
 
-        /*
-        InputImage toDetect = InputImage.fromMediaImage(input, imageRotation);
-
-        //input.close();
-
-        detector.process(toDetect)
-                .addOnSuccessListener(this)
-                .addOnFailureListener(this);*/
     }
 
     @Override
