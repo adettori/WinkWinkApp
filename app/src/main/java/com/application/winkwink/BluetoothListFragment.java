@@ -141,10 +141,10 @@ public class BluetoothListFragment extends Fragment
 
             if(btDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
 
-                Fragment cameraFragment = Camera2BasicFragment.newInstance();
+                Fragment cameraFragment = CameraXFragment.newInstance();
 
                 // Deprecated... but the alternative is still in alpha... great!
-                cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
+                //cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
 
                 getParentFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, cameraFragment)
