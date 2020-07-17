@@ -7,21 +7,33 @@
     android:layout_height="match_parent"
     tools:context=".LobbyFragment">
 
-    <ImageView
-        android:id="@+id/face_view"
+    <Button
+        android:id="@+id/go_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:contentDescription="@string/face_to_imitate"
+        android:text="@string/go"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.749" />
+
+    <ImageView
+        android:id="@+id/face_view"
+        android:layout_width="0dp"
+        android:layout_height="456dp"
+        android:contentDescription="@string/face_to_imitate"
+        app:layout_constraintBottom_toTopOf="@+id/go_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.256"
         app:srcCompat="@drawable/ic_launcher_background"
         tools:src="@drawable/ic_launcher_background" />
 
     <TextView
-        android:id="@+id/top_text"
+        android:id="@+id/desc_text"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center"
@@ -32,21 +44,7 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.771" />
-
-    <TextView
-        android:id="@+id/bottom_text"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="@string/lobby_desc_2"
-        app:autoSizeTextType="uniform"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.744" />
+        app:layout_constraintVertical_bias="0.848" />
 
     <Switch
         android:id="@+id/bt_switch"

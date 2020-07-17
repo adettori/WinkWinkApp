@@ -22,9 +22,9 @@
     <string name="discoverable">Discoverable</string>
     <string name="discover">Discover</string>
     <string name="lobby">Lobby</string>
-    <string name="lobby_desc_1">Waiting for a player to join.</string>
-    <string name="lobby_desc_2">Press back to cancel.</string>
+    <string name="lobby_desc_1">Waiting for a player to join.\n Press back to cancel.</string>
     <string name="face_to_imitate">Face to imitate</string>
+    <string name="go">Go!</string>
 
 
 </resources>

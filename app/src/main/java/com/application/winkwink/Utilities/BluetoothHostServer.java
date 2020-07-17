@@ -4,12 +4,15 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
@@ -17,15 +20,18 @@ public class BluetoothHostServer implements Runnable {
 
     private BitmapLoader bml;
 
+    private WeakReference<Button> goButton;
+
     private File saveLoc;
 
     private String myName = "it.application.winkwink bluetoothServer";
     private UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
-    public BluetoothHostServer(File dirFile, ImageView imgV) {
+    public BluetoothHostServer(File dirFile, ImageView imgV, Button btn) {
 
         saveLoc = dirFile;
         bml = new BitmapLoader(imgV, dirFile);
+        goButton = new WeakReference<>(btn);
     }
 
     @Override
@@ -42,6 +48,15 @@ public class BluetoothHostServer implements Runnable {
                 bs.close();
 
                 bml.run();
+
+                assert goButton.get() != null;
+
+                goButton.get().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        goButton.get().setVisibility(View.VISIBLE);
+                    }
+                });
             }
 
         } catch (IOException e) {
@@ -80,8 +95,6 @@ public class BluetoothHostServer implements Runnable {
                 if(totBytes >= dataSize)
                     break;
             }
-
-            Log.e("test", ""+buffer.array().length);
 
             FileOutputStream output = null;
 

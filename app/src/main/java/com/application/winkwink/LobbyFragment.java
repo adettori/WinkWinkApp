@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -87,7 +88,10 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
 
         File saveFile = new File(getActivity().getExternalFilesDir(null), saveName);
 
-        lbs = new BluetoothHostServer(saveFile, (ImageView) view.findViewById(R.id.face_view));
+        ImageView imgView = view.findViewById(R.id.face_view);
+        Button btn = view.findViewById(R.id.go_button);
+
+        lbs = new BluetoothHostServer(saveFile, imgView, btn);
 
         btSwitch = view.findViewById(R.id.bt_switch);
         btSwitch.setOnCheckedChangeListener(this);

@@ -32,6 +32,7 @@ public class BitmapLoader implements Runnable {
             result = BitmapFactory.decodeStream(is);
 
             if(tmp != null)
+
                 tmp.post(new Runnable() {
                     @Override
                     public void run() {
