@@ -44,8 +44,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 1;
 
-    private Bitmap lastFaceGuest;
-    private Bitmap lastFaceHost;
     private FaceDetector faceDet;
 
     @Override
@@ -149,24 +147,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onFailure(@NonNull Exception e) {
 
     }
-
-    public void setFaceGuest(Bitmap face) {
-
-        lastFaceGuest = face;
-    }
-
-    public void setFaceHost(Bitmap face) {
-
-        lastFaceHost = face;
-    }
-
-    public Bitmap getFaceGuest() {
-
-        return lastFaceGuest;
-    }
-
-    public Bitmap getFaceHost() {
-
-        return lastFaceHost;
-    }
+    
 }
