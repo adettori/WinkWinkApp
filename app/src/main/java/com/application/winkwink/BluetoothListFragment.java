@@ -181,7 +181,7 @@ public class BluetoothListFragment extends Fragment
 
                 lastRefDev = null;
             }
-        } else if(code == REQUEST_CAMERA2_ACTIVITY_ID) {
+        } else if(code == REQUEST_CAMERA2_ACTIVITY_ID && data != null) {
 
             BluetoothDevice btDevice = data.getParcelableExtra("targetDevice");
 

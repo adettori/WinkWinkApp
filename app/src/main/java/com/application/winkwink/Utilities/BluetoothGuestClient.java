@@ -75,7 +75,6 @@ public class BluetoothGuestClient implements Runnable {
 
         try {
             OutputStream os = bs.getOutputStream();
-            byte[] msg_len;
 
             ByteBuffer b = ByteBuffer.allocate(toSend.length + PROTOCOL_LEN + PROTOCOL_COMMAND);
             b.putInt(toSend.length);

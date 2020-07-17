@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -67,19 +68,19 @@ public class BluetoothHostServer implements Runnable {
 
     private void handleConnection(BluetoothSocket bSocket) {
 
+        byte[] lenMsg = new byte[4];
+        byte[] command = new byte[1];
+        byte[] tmpBuffer = new byte[16384];
+
+        int numBytes;
+        int dataSize;
+        int totBytes = 0;
+
         try {
             InputStream is = bSocket.getInputStream();
 
-            byte[] lenMsg = new byte[4];
-            byte[] command = new byte[1];
-            byte[] tmpBuffer = new byte[8192];
-
-            int numBytes;
-            int dataSize;
-            int totBytes = 0;
-
-            is.read(lenMsg);
-            is.read(command);
+            numBytes = is.read(lenMsg);
+            numBytes = is.read(command);
 
             dataSize = ByteBuffer.wrap(lenMsg).getInt();
             ByteBuffer buffer = ByteBuffer.allocate(dataSize);
@@ -87,13 +88,21 @@ public class BluetoothHostServer implements Runnable {
             //TODO
             // Show some kind of loading to the user
 
-            while((numBytes = is.read(tmpBuffer)) != -1) {
+            Log.e("test1", ""+buffer.array().length);
 
-                totBytes += numBytes;
-                buffer.put(tmpBuffer, 0, numBytes);
+            /* The bluetooth socket gets sometimes closed right before finishing, ignore */
+            try {
+                while ((numBytes = is.read(tmpBuffer)) != -1) {
 
-                if(totBytes >= dataSize)
-                    break;
+                    totBytes += numBytes;
+                    buffer.put(tmpBuffer, 0, numBytes);
+
+                    if (totBytes >= dataSize)
+                        break;
+                }
+            } catch (IOException e1) {
+                Log.e("test", ""+totBytes);
+                e1.printStackTrace();
             }
 
             FileOutputStream output = null;
@@ -116,6 +125,7 @@ public class BluetoothHostServer implements Runnable {
                 }
             }
         } catch (IOException e) {
+            Log.e("test", ""+totBytes);
             e.printStackTrace();
         }
     }
