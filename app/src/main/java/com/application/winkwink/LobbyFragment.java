@@ -6,11 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +14,8 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
+
+import androidx.fragment.app.Fragment;
 
 import com.application.winkwink.Utilities.BluetoothHostServer;
 
@@ -58,6 +56,8 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
     public void onResume() {
         super.onResume();
 
+        Activity activity = getActivity();
+
         serverT = new Thread(lbs);
         serverT.start();
 
@@ -67,14 +67,18 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
                 bta.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
             btSwitch.setChecked(true);
 
-        getActivity().registerReceiver(br, broadcastFilter);
+        assert activity != null;
+        activity.registerReceiver(br, broadcastFilter);
     }
 
     @Override
     public void onPause() {
         super.onPause();
 
-        getActivity().unregisterReceiver(br);
+        Activity activity = getActivity();
+
+        assert activity != null;
+        activity.unregisterReceiver(br);
         serverT.interrupt();
     }
 

@@ -250,6 +250,8 @@ public class Camera2BasicFragment extends Fragment
 
             Activity activity = getActivity();
             Image face = reader.acquireLatestImage();
+
+            assert activity != null;
             int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
 
             //TODO

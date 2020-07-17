@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -88,7 +87,7 @@ public class BluetoothHostServer implements Runnable {
             //TODO
             // Show some kind of loading to the user
 
-            Log.e("test1", ""+buffer.array().length);
+            Log.e("BluetoothServer", "Total: "+buffer.array().length);
 
             /* The bluetooth socket gets sometimes closed right before finishing, ignore */
             try {
@@ -101,9 +100,10 @@ public class BluetoothHostServer implements Runnable {
                         break;
                 }
             } catch (IOException e1) {
-                Log.e("test", ""+totBytes);
                 e1.printStackTrace();
             }
+
+            Log.e("BluetoothServer", "Received: " + totBytes);
 
             FileOutputStream output = null;
 

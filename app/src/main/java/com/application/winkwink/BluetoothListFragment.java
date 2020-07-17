@@ -24,7 +24,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.application.winkwink.Utilities.BluetoothGuestClient;
 
-import java.io.File;
 import java.util.ArrayList;
 
 
@@ -34,10 +33,6 @@ public class BluetoothListFragment extends Fragment
     private static final int REQUEST_DISCOVER_BLUETOOTH_ENABLE_ID = 10;
     private static final int REQUEST_BOND_BLUETOOTH_ENABLE_ID = 11;
     private static final int REQUEST_CAMERA2_FRAGMENT_ID = 12;
-
-    private static final String saveName = "LastFace.jpeg";
-
-    private File saveFile;
 
     private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
@@ -63,17 +58,12 @@ public class BluetoothListFragment extends Fragment
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Activity activity = getActivity();
-
         adapterDataset = new ArrayList<>();
 
         bdr = new BluetoothDiscoveryReceiver();
 
         broadcastFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         broadcastFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-
-        assert activity != null;
-        saveFile = new File(activity.getExternalFilesDir(null), saveName);
 
     }
 
