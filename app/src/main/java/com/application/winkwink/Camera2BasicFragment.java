@@ -64,7 +64,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -78,8 +77,14 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+//TODO
+// https://stackoverflow.com/questions/31925769/pictures-with-camera2-api-are-really-dark
+
 public class Camera2BasicFragment extends Fragment
         implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
+
+    // Take photo (Mode 1), take photo and compare facial features (Mode 2)
+    private int fragmentCameraMode = 1;
 
     /**
      * Conversion from screen rotation to JPEG orientation.
@@ -277,7 +282,9 @@ public class Camera2BasicFragment extends Fragment
 
             getTargetFragment().onActivityResult(getTargetRequestCode(), Activity.RESULT_OK,
                     resultIntent);
-            getParentFragmentManager().popBackStack();
+
+            if(fragmentCameraMode == 1)
+                getParentFragmentManager().popBackStack();
         }
 
     };
@@ -546,9 +553,9 @@ public class Camera2BasicFragment extends Fragment
                 assert afAvailableModes != null;
 
                 if (afAvailableModes.length == 0 || (afAvailableModes.length == 1
-                        && afAvailableModes[0] == CameraMetadata.CONTROL_AF_MODE_OFF))
+                        && afAvailableModes[0] == CameraMetadata.CONTROL_AF_MODE_OFF)) {
                     mAutoFocusSupported = false;
-                else {
+                } else {
                     mAutoFocusSupported = true;
                 }
 

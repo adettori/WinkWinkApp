@@ -25,7 +25,7 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
 
     private static final int REQUEST_DISCOVERABLE_ID = 30;
     private static final int DISCOVERY_DURATION_REQUEST = 120; //Seconds
-    private static final String saveName = "LastFace.jpeg";
+    private static final String saveName = "LastGuestFace.jpeg";
 
     private Switch btSwitch;
 
