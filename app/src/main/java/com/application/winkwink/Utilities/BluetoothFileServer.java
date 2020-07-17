@@ -4,12 +4,14 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
@@ -21,20 +23,22 @@ import java.util.UUID;
  */
 
 
-public class BluetoothServerTask implements Runnable{
+public class BluetoothFileServer implements Runnable{
 
-    Context execContext;
+    private File saveLoc;
+    private String saveName;
 
-    String myName = "it.application.winkwink bluetoothServer";
-    UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+    private String myName = "it.application.winkwink bluetoothServer";
+    private UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
-    BluetoothAdapter bta;
-    BluetoothSocket bs;
+    private BluetoothAdapter bta;
+    private BluetoothSocket bs;
 
-    public BluetoothServerTask(Context context) {
+    public BluetoothFileServer(File dirFile, String fileName) {
 
         bta = BluetoothAdapter.getDefaultAdapter();
-        execContext = context;
+        saveLoc = dirFile;
+        saveName = fileName;
     }
 
     @Override
@@ -87,8 +91,7 @@ public class BluetoothServerTask implements Runnable{
 
             Log.e("test", ""+buffer.array().length);
 
-            File mFile = new File(execContext.getExternalFilesDir(null),
-                    "lastFace.jpg");
+            File mFile = new File(saveLoc, saveName);
 
             FileOutputStream output = null;
 

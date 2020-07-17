@@ -21,7 +21,7 @@ import java.util.UUID;
  * n byte: message
  */
 
-public class BluetoothClientTask implements Runnable {
+public class BluetoothFileClient implements Runnable {
 
     private static final int PROTOCOL_LEN = 4;
     private static final int PROTOCOL_COMMAND = 1;
@@ -32,13 +32,13 @@ public class BluetoothClientTask implements Runnable {
     byte[] toSend = null;
     Uri dataUri = null;
 
-    public BluetoothClientTask(BluetoothDevice bDevice, byte[] data) {
+    public BluetoothFileClient(BluetoothDevice bDevice, byte[] data) {
 
         btd = bDevice;
         toSend = data;
     }
 
-    public BluetoothClientTask(BluetoothDevice bDevice, Uri dataLoc) {
+    public BluetoothFileClient(BluetoothDevice bDevice, Uri dataLoc) {
 
         btd = bDevice;
         dataUri = dataLoc;

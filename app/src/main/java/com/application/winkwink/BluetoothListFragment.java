@@ -22,7 +22,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.application.winkwink.Utilities.BluetoothClientTask;
+import com.application.winkwink.Utilities.BluetoothFileClient;
 
 import java.util.ArrayList;
 
@@ -181,7 +181,7 @@ public class BluetoothListFragment extends Fragment
 
             assert faceUri != null;
 
-            BluetoothClientTask sendTask = new BluetoothClientTask(btDevice, faceUri);
+            BluetoothFileClient sendTask = new BluetoothFileClient(btDevice, faceUri);
 
             if(btSenderThread == null || !btSenderThread.isAlive()) {
                 btSenderThread = new Thread(sendTask);

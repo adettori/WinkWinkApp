@@ -16,12 +16,13 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 
-import com.application.winkwink.Utilities.BluetoothServerTask;
+import com.application.winkwink.Utilities.BluetoothFileServer;
 
 public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedChangeListener {
 
     private static final int REQUEST_DISCOVERABLE_ID = 30;
     private static final int DISCOVERY_DURATION_REQUEST = 120; //Seconds
+    private static final String saveFile = "LastFace.jpeg";
 
     private Switch btSwitch;
 
@@ -29,7 +30,7 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
     private BluetoothToggleReceiver br;
     private IntentFilter broadcastFilter;
 
-    private BluetoothServerTask bst;
+    private BluetoothFileServer bst;
     private Thread serverT;
 
     public LobbyFragment() {}
@@ -81,7 +82,7 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
 
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
-        bst = new BluetoothServerTask(getActivity());
+        bst = new BluetoothFileServer(getActivity().getFilesDir(), saveFile);
 
         btSwitch = view.findViewById(R.id.bt_switch);
         btSwitch.setOnCheckedChangeListener(this);
