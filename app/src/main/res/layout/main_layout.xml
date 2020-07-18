@@ -8,7 +8,7 @@
 
 
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/fragment_container"
+        android:id="@+id/menu_container"
         android:name="com.application.winkwink.MenuFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"

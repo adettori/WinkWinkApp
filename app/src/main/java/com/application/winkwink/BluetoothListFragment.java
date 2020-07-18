@@ -251,7 +251,7 @@ public class BluetoothListFragment extends Fragment
         cameraFragment.setArguments(args);
 
         getParentFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, cameraFragment)
+                .replace(R.id.menu_container, cameraFragment)
                 .addToBackStack("CAMERA_TRANSITION")
                 .commit();
     }

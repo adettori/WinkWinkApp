@@ -63,7 +63,7 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
         } else if(view.getId() == R.id.host_button) {
 
             getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, LobbyFragment.newInstance())
+                    .replace(R.id.menu_container, LobbyFragment.newInstance())
                     .addToBackStack("LOBBY_TRANSITION")
                     .commit();
         }
@@ -76,7 +76,7 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
             if (grantResults.length > 0 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getParentFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
+                        .replace(R.id.menu_container, BluetoothListFragment.newInstance())
                         .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                         .commit();
             } else {
@@ -101,7 +101,7 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
                 PackageManager.PERMISSION_GRANTED) {
 
             getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, BluetoothListFragment.newInstance())
+                    .replace(R.id.menu_container, BluetoothListFragment.newInstance())
                     .addToBackStack("BLUETOOTH_LIST_TRANSITION")
                     .commit();
         } else {
