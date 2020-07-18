@@ -59,7 +59,7 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
 
         if(view.getId() == R.id.find_button) {
 
-            handleLocationPermissionFragment();
+            handleFragmentLocationPermission();
         } else if(view.getId() == R.id.host_button) {
 
             getParentFragmentManager().beginTransaction()
@@ -90,8 +90,7 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private void handleLocationPermissionFragment () {
+    private void handleFragmentLocationPermission () {
 
         Context context = getContext();
 
