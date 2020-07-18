@@ -4,7 +4,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -18,9 +17,11 @@ import java.util.UUID;
 
 /**
  * Protocol:
- * 4 byte: length n of the message
- * 1 byte: command id
- * n byte: message
+ * 2 byte: length n of the username
+ * n byte: username
+ * 4 byte: image rotation
+ * 4 byte: size m of the image
+ * m byte: image
  */
 
 public class BluetoothGuestClient implements Runnable {

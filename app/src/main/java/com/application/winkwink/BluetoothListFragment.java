@@ -69,7 +69,6 @@ public class BluetoothListFragment extends Fragment
 
         broadcastFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         broadcastFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-
     }
 
     @Override
@@ -247,7 +246,7 @@ public class BluetoothListFragment extends Fragment
         // Deprecated... but the alternative is still in alpha... great!
         cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
         args.putParcelable("targetDevice", lastRefDev);
-        args.putInt("cameraXMode", CameraXFragment.CAMERA_MODE_COMPARE);
+        args.putInt("cameraXMode", CameraXFragment.CAMERA_MODE_PHOTO);
         cameraFragment.setArguments(args);
 
         getParentFragmentManager().beginTransaction()

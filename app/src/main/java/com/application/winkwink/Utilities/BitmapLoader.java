@@ -33,12 +33,7 @@ public class BitmapLoader implements Runnable {
 
             if(tmp != null)
 
-                tmp.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        tmp.setImageBitmap(result);
-                    }
-                });
+                tmp.post(() -> tmp.setImageBitmap(result));
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();

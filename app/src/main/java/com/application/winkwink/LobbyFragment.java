@@ -18,16 +18,21 @@ import android.widget.Switch;
 import androidx.fragment.app.Fragment;
 
 import com.application.winkwink.Utilities.BluetoothHostServer;
+import com.application.winkwink.Utilities.FaceSharer;
+import com.google.mlkit.vision.face.Face;
 
 import java.io.File;
 
-public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedChangeListener {
+public class LobbyFragment extends Fragment
+        implements CompoundButton.OnCheckedChangeListener, View.OnClickListener, FaceSharer {
 
     private static final int REQUEST_DISCOVERABLE_ID = 30;
+    private static final int REQUEST_CAMERA2_FRAGMENT_ID = 31;
     private static final int DISCOVERY_DURATION_REQUEST = 120; //Seconds
     private static final String saveName = "LastGuestFace.jpeg";
 
     private Switch btSwitch;
+    private Button goButton;
 
     private BluetoothAdapter bta;
     private BluetoothToggleReceiver br;
@@ -35,6 +40,8 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
 
     private BluetoothHostServer lbs;
     private Thread serverT;
+
+    private Face curFaceImageView;
 
     public LobbyFragment() {}
 
@@ -50,6 +57,34 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
         broadcastFilter.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
 
         bta = BluetoothAdapter.getDefaultAdapter();
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_lobby, container, false);
+    }
+
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+
+        Activity activity = getActivity();
+
+        assert activity != null;
+
+        File saveFile = new File(activity.getExternalFilesDir(null), saveName);
+
+        ImageView imgView = view.findViewById(R.id.face_view);
+
+        goButton = view.findViewById(R.id.go_button);
+        goButton.setOnClickListener(this);
+
+        lbs = new BluetoothHostServer(saveFile, imgView, goButton, this);
+
+        btSwitch = view.findViewById(R.id.bt_switch);
+        btSwitch.setOnCheckedChangeListener(this);
+
+        br = new BluetoothToggleReceiver(btSwitch);
     }
 
     @Override
@@ -80,33 +115,6 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
         assert activity != null;
         activity.unregisterReceiver(br);
         serverT.interrupt();
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_lobby, container, false);
-    }
-
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-
-        Activity activity = getActivity();
-
-        assert activity != null;
-
-        File saveFile = new File(activity.getExternalFilesDir(null), saveName);
-
-        ImageView imgView = view.findViewById(R.id.face_view);
-        Button btn = view.findViewById(R.id.go_button);
-
-        lbs = new BluetoothHostServer(saveFile, imgView, btn);
-
-        btSwitch = view.findViewById(R.id.bt_switch);
-        btSwitch.setOnCheckedChangeListener(this);
-
-        br = new BluetoothToggleReceiver(btSwitch);
-
     }
 
     public void onActivityResult(int code, int res, Intent data) {
@@ -143,6 +151,39 @@ public class LobbyFragment extends Fragment implements CompoundButton.OnCheckedC
                 btSwitch.setChecked(true);
             }
         }
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        if(v.getId() == R.id.go_button) {
+
+            Fragment cameraFragment = CameraXFragment.newInstance();
+            Bundle args = new Bundle();
+
+            // Deprecated... but the alternative is still in alpha... great!
+            cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
+            args.putInt("cameraXMode", CameraXFragment.CAMERA_MODE_COMPARE);
+            args.putFloat("faceLeftEye", curFaceImageView.getLeftEyeOpenProbability());
+            args.putFloat("faceRightEye", curFaceImageView.getRightEyeOpenProbability());
+            args.putFloat("faceSmile", curFaceImageView.getSmilingProbability());
+            cameraFragment.setArguments(args);
+
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.menu_container, cameraFragment)
+                    .addToBackStack("CAMERA_TRANSITION")
+                    .commit();
+        }
+    }
+
+    @Override
+    public Face getFace(int id) {
+        return curFaceImageView;
+    }
+
+    @Override
+    public void setFace(Face face) {
+        curFaceImageView = face;
     }
 
     private static class BluetoothToggleReceiver extends BroadcastReceiver {

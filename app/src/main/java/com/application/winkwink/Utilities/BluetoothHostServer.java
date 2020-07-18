@@ -3,10 +3,22 @@ package com.application.winkwink.Utilities;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+
+import androidx.annotation.NonNull;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.face.Face;
+import com.google.mlkit.vision.face.FaceDetection;
+import com.google.mlkit.vision.face.FaceDetector;
+import com.google.mlkit.vision.face.FaceDetectorOptions;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,24 +26,39 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.UUID;
 
-public class BluetoothHostServer implements Runnable {
+/**
+ * Protocol:
+ * 2 byte: length n of the username
+ * n byte: username
+ * 4 byte: image rotation
+ * 4 byte: size m of the image
+ * m byte: image
+ */
+
+public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Face>>,
+        OnFailureListener {
 
     private BitmapLoader bml;
 
     private WeakReference<Button> goButton;
+    private WeakReference<ImageView> imgView;
+    private WeakReference<FaceSharer> faceSharer;
 
     private File saveLoc;
 
-    private String myName = "it.application.winkwink bluetoothServer";
-    private UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+    private static final String myName = "it.application.winkwink bluetoothServer";
+    private static final UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
-    public BluetoothHostServer(File dirFile, ImageView imgV, Button btn) {
+    public BluetoothHostServer(File dirFile, ImageView imgV, Button btn, FaceSharer faceS) {
 
         saveLoc = dirFile;
         bml = new BitmapLoader(imgV, dirFile);
         goButton = new WeakReference<>(btn);
+        imgView = new WeakReference<>(imgV);
+        faceSharer = new WeakReference<>(faceS);
     }
 
     @Override
@@ -52,11 +79,28 @@ public class BluetoothHostServer implements Runnable {
 
                 bml.run();
 
-                Button btn = goButton.get();
+                FaceDetectorOptions faceOpt = new FaceDetectorOptions.Builder()
+                        .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                        .build();
 
-                assert btn != null;
+                FaceDetector faceDet = FaceDetection.getClient(faceOpt);
 
-                btn.post(() -> btn.setVisibility(View.VISIBLE));
+                ImageView view = imgView.get();
+
+                assert view != null;
+
+                //Set by bitmap loader above
+                BitmapDrawable drawable = (BitmapDrawable) view.getDrawable();
+                Bitmap bmp = drawable.getBitmap();
+
+                //TODO
+                // Rotation
+                InputImage toDetect = InputImage.fromBitmap(bmp, 0);
+
+                faceDet.process(toDetect)
+                        .addOnSuccessListener(this)
+                        .addOnFailureListener(this);
             }
 
         } catch (IOException e) {
@@ -128,5 +172,28 @@ public class BluetoothHostServer implements Runnable {
             Log.e("test", ""+totBytes);
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onFailure(@NonNull Exception e) {
+
+    }
+
+    @Override
+    public void onSuccess(List<Face> faces) {
+
+        FaceSharer faceSh = faceSharer.get();
+        Button btn = goButton.get();
+        Face target = faces.get(0);
+
+        if(btn != null)
+            //TODO
+            // Refactor urgently!
+            btn.post(() -> {
+                    btn.setVisibility(View.VISIBLE);
+
+                    if(faceSh != null && faces.size() > 0)
+                        faceSh.setFace(target);
+            });
     }
 }

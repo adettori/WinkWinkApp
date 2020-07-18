@@ -21,7 +21,6 @@ import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
-import androidx.camera.core.UseCase;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
@@ -38,7 +37,6 @@ import com.google.mlkit.vision.face.FaceDetectorOptions;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -82,6 +80,8 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             if(mode == CAMERA_MODE_COMPARE || mode == CAMERA_MODE_PHOTO
                     || mode == CAMERA_MODE_EASTEREGG)
                 ACTIVE_MODE = mode;
+            else
+                ACTIVE_MODE = CAMERA_MODE_PHOTO;
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor();
@@ -97,7 +97,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
-        viewFinder = view.findViewById(R.id.texture);
+        viewFinder = view.findViewById(R.id.preview);
 
         Button btn = view.findViewById(R.id.picture);
         btn.setOnClickListener(this);
@@ -144,20 +144,19 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 cameraProvider.unbindAll();
 
                 // Bind use cases to camera
-                Camera camera = cameraProvider.bindToLifecycle(
-                        getActivity(), cameraSelector, preview);
+                Camera camera;
 
                 if(ACTIVE_MODE == CAMERA_MODE_PHOTO) {
 
                     imageCapture = new ImageCapture.Builder().build();
                     camera = cameraProvider.bindToLifecycle(getActivity(), cameraSelector,
-                            imageCapture);
+                            preview, imageCapture);
                 } else {
 
                     imageAnalyzer = new ImageAnalysis.Builder().build();
                     imageAnalyzer.setAnalyzer(cameraExecutor, new FacialFeaturesAnalyzer());
                     camera = cameraProvider.bindToLifecycle(getActivity(), cameraSelector,
-                            imageAnalyzer);
+                            preview, imageAnalyzer);
                 }
 
                 preview.setSurfaceProvider(
@@ -221,7 +220,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
             FaceDetectorOptions faceOpt = new FaceDetectorOptions.Builder()
                     .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
-                    .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+                    .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
                     .build();
 
             faceDet = FaceDetection.getClient(faceOpt);
@@ -254,7 +253,12 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
             Log.d(TAG, "Found faces: " + faces.size());
 
-            curImage.close();
+            try {
+
+                curImage.close();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
