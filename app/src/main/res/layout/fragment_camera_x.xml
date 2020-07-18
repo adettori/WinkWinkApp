@@ -16,7 +16,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <FrameLayout
-        android:id="@+id/control"
+        android:id="@+id/btn_container"
         android:layout_width="0dp"
         android:layout_height="130dp"
         android:background="@color/control_background"

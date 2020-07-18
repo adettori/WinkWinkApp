@@ -21,6 +21,7 @@ import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
+import androidx.camera.core.UseCase;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
@@ -37,6 +38,7 @@ import com.google.mlkit.vision.face.FaceDetectorOptions;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -49,9 +51,16 @@ import java.util.concurrent.Executors;
 
 public class CameraXFragment extends Fragment implements View.OnClickListener {
 
-    private final static String TAG = "CameraXTest";
+    public final static String TAG = "CameraXTest";
+    public final static int CAMERA_MODE_COMPARE = 1;
+    public final static int CAMERA_MODE_PHOTO = 2;
+    //TODO
+    public final static int CAMERA_MODE_EASTEREGG = 3;
+
+    private int ACTIVE_MODE;
 
     private PreviewView viewFinder;
+
     private ImageCapture imageCapture;
     private ImageAnalysis imageAnalyzer;
     private ExecutorService cameraExecutor;
@@ -63,6 +72,17 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Bundle args = this.getArguments();
+
+        if(args != null) {
+
+            int mode = args.getInt("cameraXMode");
+
+            if(mode == CAMERA_MODE_COMPARE || mode == CAMERA_MODE_PHOTO
+                    || mode == CAMERA_MODE_EASTEREGG)
+                ACTIVE_MODE = mode;
+        }
 
         cameraExecutor = Executors.newSingleThreadExecutor();
         startCamera();
@@ -81,6 +101,9 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
         Button btn = view.findViewById(R.id.picture);
         btn.setOnClickListener(this);
+
+        if(ACTIVE_MODE == CAMERA_MODE_COMPARE || ACTIVE_MODE == CAMERA_MODE_EASTEREGG)
+            view.findViewById(R.id.btn_container).setVisibility(View.GONE);
     }
 
     @Override
@@ -111,13 +134,9 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             }
 
             Preview preview = new Preview.Builder().build();
-            imageCapture = new ImageCapture.Builder().build();
             CameraSelector cameraSelector = new CameraSelector.Builder()
                     .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
                     .build();
-
-            imageAnalyzer = new ImageAnalysis.Builder().build();
-            imageAnalyzer.setAnalyzer(cameraExecutor, new FacialFeaturesAnalyzer());
 
             try {
                 // Unbind use cases before rebinding
@@ -126,7 +145,20 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                 // Bind use cases to camera
                 Camera camera = cameraProvider.bindToLifecycle(
-                        getActivity(), cameraSelector, preview, imageCapture, imageAnalyzer);
+                        getActivity(), cameraSelector, preview);
+
+                if(ACTIVE_MODE == CAMERA_MODE_PHOTO) {
+
+                    imageCapture = new ImageCapture.Builder().build();
+                    camera = cameraProvider.bindToLifecycle(getActivity(), cameraSelector,
+                            imageCapture);
+                } else {
+
+                    imageAnalyzer = new ImageAnalysis.Builder().build();
+                    imageAnalyzer.setAnalyzer(cameraExecutor, new FacialFeaturesAnalyzer());
+                    camera = cameraProvider.bindToLifecycle(getActivity(), cameraSelector,
+                            imageAnalyzer);
+                }
 
                 preview.setSurfaceProvider(
                         viewFinder.createSurfaceProvider(camera.getCameraInfo()));
