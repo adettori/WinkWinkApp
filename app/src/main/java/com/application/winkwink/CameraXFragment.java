@@ -43,6 +43,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Original code taken from Google's
+ * https://codelabs.developers.google.com/codelabs/camerax-getting-started */
+
 public class CameraXFragment extends Fragment implements View.OnClickListener {
 
     private final static String TAG = "CameraXTest";
@@ -88,6 +92,8 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    //TODO
+    // Limit resolution to speedup bluetooth transfer
     private void startCamera() {
 
         Context context = getActivity();
@@ -173,7 +179,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         });
     }
 
-    private class FacialFeaturesAnalyzer implements ImageAnalysis.Analyzer,
+    private static class FacialFeaturesAnalyzer implements ImageAnalysis.Analyzer,
             OnSuccessListener<List<Face>>, OnFailureListener {
 
         private FaceDetector faceDet;
@@ -183,7 +189,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
             FaceDetectorOptions faceOpt = new FaceDetectorOptions.Builder()
                     .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
-                    .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                    .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
                     .build();
 
             faceDet = FaceDetection.getClient(faceOpt);
@@ -214,13 +220,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         @Override
         public void onSuccess(List<Face> faces) {
 
-            Context context = getContext();
-
             Log.d(TAG, "Found faces: " + faces.size());
-
-            if(context != null)
-                Toast.makeText(context, "Found faces: " + faces.size(), Toast.LENGTH_SHORT)
-                        .show();
 
             curImage.close();
         }
