@@ -1,5 +1,6 @@
 package com.application.winkwink;
 
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -7,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -18,6 +20,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,7 +28,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.application.winkwink.Utilities.BluetoothGuestClient;
 
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 
 
@@ -35,6 +37,7 @@ public class BluetoothListFragment extends Fragment
     private static final int REQUEST_DISCOVER_BLUETOOTH_ENABLE_ID = 10;
     private static final int REQUEST_BOND_BLUETOOTH_ENABLE_ID = 11;
     private static final int REQUEST_CAMERA2_FRAGMENT_ID = 12;
+    private static final int REQUEST_ACCESS_CAMERA = 13;
 
     private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
@@ -143,24 +146,7 @@ public class BluetoothListFragment extends Fragment
 
             if(btDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
 
-                Fragment cameraFragment = CameraXFragment.newInstance();
-
-                // Deprecated... but the alternative is still in alpha... great!
-                cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
-
-                getParentFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, cameraFragment)
-                        .addToBackStack("CAMERA_TRANSITION")
-                        .commit();
-/*
-                Intent i = new Intent(getContext(), Camera2BasicFragment.class);
-                i.putExtra("targetDevice", btDevice);
-                i.putExtra("saveLocation",
-                        new Uri.Builder().appendPath(saveFile.toString()).build());
-
-                assert btDevice != null;
-                bta.cancelDiscovery();
-                startActivityForResult(i, REQUEST_CAMERA2_ACTIVITY_ID);*/
+                handleFragmentCameraPermission();
             }
 
         }
@@ -207,12 +193,66 @@ public class BluetoothListFragment extends Fragment
         }
     }
 
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        // If request is cancelled, the result arrays are empty.
+        if (requestCode == REQUEST_ACCESS_CAMERA) {
+            if (grantResults.length > 0 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                coordinateCameraAccess();
+            } else {
+                //TODO
+                // Explain to the user that the feature is unavailable because
+                // the features requires a permission that the user has denied.
+                // At the same time, respect the user's decision. Don't link to
+                // system settings in an effort to convince the user to change
+                // their decision.
+            }
+        }
+    }
+
     public void appendAdapterDataset(BluetoothDevice dev) {
 
         if(!adapterDataset.contains(dev) && dev.getName() != null) {
             adapterDataset.add(dev);
             mAdapter.notifyDataSetChanged();
         }
+    }
+
+    private void handleFragmentCameraPermission () {
+
+        Context context = getContext();
+
+        assert context != null;
+
+        if (ContextCompat.checkSelfPermission(
+                context, Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED) {
+
+            coordinateCameraAccess();
+        } else {
+            requestPermissions(
+                    new String[]{Manifest.permission.CAMERA},
+                    REQUEST_ACCESS_CAMERA);
+        }
+    }
+
+    private void coordinateCameraAccess() {
+
+        Fragment cameraFragment = CameraXFragment.newInstance();
+        Bundle args = new Bundle();
+
+        bta.cancelDiscovery();
+        // Deprecated... but the alternative is still in alpha... great!
+        cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
+        args.putParcelable("targetDevice", lastRefDev);
+        cameraFragment.setArguments(args);
+
+        getParentFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, cameraFragment)
+                .addToBackStack("CAMERA_TRANSITION")
+                .commit();
     }
 
     private void coordinateDeviceDiscovery(BluetoothAdapter ba) {
