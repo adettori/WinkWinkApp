@@ -39,6 +39,9 @@ public class BluetoothHostServer implements Runnable {
 
         BluetoothAdapter bta = BluetoothAdapter.getDefaultAdapter();
 
+        if(bta == null)
+            return;
+
         try (BluetoothServerSocket bss = bta.listenUsingRfcommWithServiceRecord(myName,myId)) {
 
             while(!Thread.interrupted()) {
@@ -49,14 +52,11 @@ public class BluetoothHostServer implements Runnable {
 
                 bml.run();
 
-                assert goButton.get() != null;
+                Button btn = goButton.get();
 
-                goButton.get().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        goButton.get().setVisibility(View.VISIBLE);
-                    }
-                });
+                assert btn != null;
+
+                btn.post(() -> btn.setVisibility(View.VISIBLE));
             }
 
         } catch (IOException e) {
