@@ -26,6 +26,7 @@ import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.common.util.ArrayUtils;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -37,6 +38,7 @@ import com.google.mlkit.vision.face.FaceDetectorOptions;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -63,6 +65,9 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
     private ImageAnalysis imageAnalyzer;
     private ExecutorService cameraExecutor;
 
+    // Left eye, right eye, smile probabilities
+    private Float[] faceToCompare;
+
     public CameraXFragment() {}
 
     public static CameraXFragment newInstance() { return new CameraXFragment(); }
@@ -82,6 +87,12 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 ACTIVE_MODE = mode;
             else
                 ACTIVE_MODE = CAMERA_MODE_PHOTO;
+
+            faceToCompare = new Float[3];
+
+            faceToCompare[0] = args.getFloat("faceLeftEye");
+            faceToCompare[1] = args.getFloat("faceRightEye");
+            faceToCompare[2] = args.getFloat("faceSmile");
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor();
@@ -154,7 +165,8 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 } else {
 
                     imageAnalyzer = new ImageAnalysis.Builder().build();
-                    imageAnalyzer.setAnalyzer(cameraExecutor, new FacialFeaturesAnalyzer());
+                    imageAnalyzer.setAnalyzer(cameraExecutor,
+                            new FacialFeaturesAnalyzer(faceToCompare));
                     camera = cameraProvider.bindToLifecycle(getActivity(), cameraSelector,
                             preview, imageAnalyzer);
                 }
@@ -215,6 +227,15 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
         private FaceDetector faceDet;
         private ImageProxy curImage;
+        private Boolean[] faceToCompareFeatures;
+
+        public FacialFeaturesAnalyzer(Float[] probabilitiesArray) {
+
+            this();
+
+            if(probabilitiesArray != null)
+                faceToCompareFeatures = facialFeaturesSolver(probabilitiesArray);
+        }
 
         public FacialFeaturesAnalyzer() {
 
@@ -244,21 +265,42 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         public void onFailure(@NonNull Exception e) {
 
             Log.e(TAG, "Detect failed");
-
             curImage.close();
+            e.printStackTrace();
         }
 
         @Override
         public void onSuccess(List<Face> faces) {
 
+            curImage.close();
+
             Log.d(TAG, "Found faces: " + faces.size());
 
-            try {
+            if(faces.size() == 0)
+                return;
 
-                curImage.close();
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
+            Face curFace = faces.get(0);
+
+            Float[] curFaceFeatures = {curFace.getLeftEyeOpenProbability(),
+                    curFace.getRightEyeOpenProbability(), curFace.getSmilingProbability()};
+
+            if(Arrays.equals(facialFeaturesSolver(curFaceFeatures), faceToCompareFeatures))
+                Log.e(TAG, "Well done!");
+            else
+                Log.e(TAG, "Booo!");
+        }
+
+        private Boolean[] facialFeaturesSolver(Float[] input) {
+
+            Boolean[] result = new Boolean[3];
+            double threshold = 0.70;
+
+            for(int i=0; i<input.length;i++) {
+
+                result[i] = input[i] > threshold;
             }
+
+            return result;
         }
     }
 }

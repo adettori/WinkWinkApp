@@ -133,7 +133,8 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
             Log.e("BluetoothServer", "Total: "+buffer.array().length);
 
-            /* The bluetooth socket gets sometimes closed right before finishing, ignore */
+            /* The bluetooth socket gets sometimes closed right before finishing, ignore and read
+            the data anyway */
             try {
                 while ((numBytes = is.read(tmpBuffer)) != -1) {
 
@@ -177,6 +178,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     @Override
     public void onFailure(@NonNull Exception e) {
 
+        e.printStackTrace();
     }
 
     @Override
