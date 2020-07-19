@@ -14,6 +14,7 @@ public class BitmapLoader implements Runnable {
 
     private WeakReference<ImageView> imgView;
 
+    private Bitmap bitmap;
     private File saveLoc;
     private byte[] bitmapBuffer;
 
@@ -27,6 +28,12 @@ public class BitmapLoader implements Runnable {
 
         imgView = new WeakReference<>(view);
         bitmapBuffer = buffer;
+    }
+
+    BitmapLoader(ImageView view, Bitmap bmp) {
+
+        imgView = new WeakReference<>(view);
+        bitmap = bmp;
     }
 
     @Override
@@ -43,9 +50,9 @@ public class BitmapLoader implements Runnable {
 
                 result = BitmapFactory.decodeByteArray(bitmapBuffer, 0,
                         bitmapBuffer.length);
-            } else {
+            } else if(bitmap != null){
 
-                Log.e("BitmapLoader", "data null");
+                result = bitmap;
             }
 
             if(tmpImgV != null) {

@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 import android.view.View;
@@ -118,13 +119,12 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
                 assert view != null;
 
-                //Load the image inside the ViewImage
-                BitmapLoader bml = new BitmapLoader(imgView.get(), bitmapBuffer);
-                bml.run();
+                Bitmap bmp = BitmapFactory.decodeByteArray(bitmapBuffer, 0,
+                        bitmapBuffer.length);;
 
-                //Set by bitmap loader above
-                BitmapDrawable drawable = (BitmapDrawable) view.getDrawable();
-                Bitmap bmp = drawable.getBitmap();
+                //Load the image inside the ViewImage
+                BitmapLoader bml = new BitmapLoader(imgView.get(), bmp);
+                bml.run();
 
                 InputImage toDetect = InputImage.fromBitmap(bmp, imgRotation);
 
