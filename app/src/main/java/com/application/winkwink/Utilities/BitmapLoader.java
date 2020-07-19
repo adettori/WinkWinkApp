@@ -2,6 +2,7 @@ package com.application.winkwink.Utilities;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.File;
@@ -42,6 +43,9 @@ public class BitmapLoader implements Runnable {
 
                 result = BitmapFactory.decodeByteArray(bitmapBuffer, 0,
                         bitmapBuffer.length);
+            } else {
+
+                Log.e("BitmapLoader", "data null");
             }
 
             if(tmpImgV != null) {

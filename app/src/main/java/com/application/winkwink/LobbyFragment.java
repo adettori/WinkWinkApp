@@ -105,7 +105,7 @@ public class LobbyFragment extends Fragment
         serverT = new Thread(lbs);
         serverT.start();
 
-        //Forces the synchronisation of the toggle
+        //Forces the synchronisation of the toggle button
         btSwitch.setChecked(false);
         if(bta != null &&
                 bta.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)

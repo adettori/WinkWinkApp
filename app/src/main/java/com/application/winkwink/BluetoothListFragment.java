@@ -249,6 +249,7 @@ public class BluetoothListFragment extends Fragment
         Bundle args = new Bundle();
 
         bta.cancelDiscovery();
+
         // Deprecated... but the alternative is still in alpha... great!
         cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
         args.putParcelable("targetDevice", lastRefDev);

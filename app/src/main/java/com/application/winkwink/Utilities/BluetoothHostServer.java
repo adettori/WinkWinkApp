@@ -82,6 +82,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     public void run() {
 
         BluetoothAdapter bta = BluetoothAdapter.getDefaultAdapter();
+
         FaceDetectorOptions faceOpt = new FaceDetectorOptions.Builder()
                 .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
                 .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
@@ -113,13 +114,13 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
                 saverExecutor.submit(new ImageSaver(bitmapBuffer, saveLoc));
 
-                //Load the image inside the ViewImage
-                BitmapLoader bml = new BitmapLoader(imgView.get(), bitmapBuffer);
-                bml.run();
-
                 ImageView view = imgView.get();
 
                 assert view != null;
+
+                //Load the image inside the ViewImage
+                BitmapLoader bml = new BitmapLoader(imgView.get(), bitmapBuffer);
+                bml.run();
 
                 //Set by bitmap loader above
                 BitmapDrawable drawable = (BitmapDrawable) view.getDrawable();
