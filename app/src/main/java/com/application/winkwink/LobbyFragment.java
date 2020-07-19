@@ -1,11 +1,13 @@
 package com.application.winkwink;
 
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +17,8 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
 
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.application.winkwink.Utilities.BluetoothHostServer;
@@ -28,6 +32,7 @@ public class LobbyFragment extends Fragment
 
     private static final int REQUEST_DISCOVERABLE_ID = 30;
     private static final int REQUEST_CAMERA2_FRAGMENT_ID = 31;
+    private static final int REQUEST_ACCESS_CAMERA_ID = 32;
     private static final int DISCOVERY_DURATION_REQUEST = 120; //Seconds
     private static final String saveName = "LastGuestFace.jpeg";
 
@@ -117,16 +122,6 @@ public class LobbyFragment extends Fragment
         serverT.interrupt();
     }
 
-    public void onActivityResult(int code, int res, Intent data) {
-        super.onActivityResult(code, res, data);
-
-        if (code == REQUEST_DISCOVERABLE_ID) {
-            if (res == Activity.RESULT_CANCELED) {
-                btSwitch.setChecked(false);
-            }
-        }
-    }
-
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
@@ -158,25 +153,77 @@ public class LobbyFragment extends Fragment
 
         if(v.getId() == R.id.go_button) {
 
-            Fragment cameraFragment = CameraXFragment.newInstance();
-            Bundle args = new Bundle();
-            float[] featuresArray = new float[3];
-
-            featuresArray[0] = curFaceImageView.getLeftEyeOpenProbability();
-            featuresArray[1] = curFaceImageView.getRightEyeOpenProbability();
-            featuresArray[2] = curFaceImageView.getSmilingProbability();
-
-            // Deprecated... but the alternative is still in alpha... great!
-            cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
-            args.putInt("cameraXMode", CameraXFragment.CAMERA_MODE_COMPARE);
-            args.putFloatArray("facialFeaturesArray", featuresArray);
-            cameraFragment.setArguments(args);
-
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.menu_container, cameraFragment)
-                    .addToBackStack("CAMERA_TRANSITION")
-                    .commit();
+            handleFragmentCameraPermission();
         }
+    }
+
+    public void onActivityResult(int code, int res, Intent data) {
+        super.onActivityResult(code, res, data);
+
+        if (code == REQUEST_DISCOVERABLE_ID) {
+            if (res == Activity.RESULT_CANCELED) {
+                btSwitch.setChecked(false);
+            }
+        }
+    }
+
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        // If request is cancelled, the result arrays are empty.
+        if (requestCode == REQUEST_ACCESS_CAMERA_ID) {
+            if (grantResults.length > 0 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                coordinateCameraAccess();
+            } else {
+                //TODO
+                // Explain to the user that the feature is unavailable because
+                // the features requires a permission that the user has denied.
+                // At the same time, respect the user's decision. Don't link to
+                // system settings in an effort to convince the user to change
+                // their decision.
+            }
+        }
+    }
+
+    private void handleFragmentCameraPermission () {
+
+        Context context = getContext();
+
+        assert context != null;
+
+        if (ContextCompat.checkSelfPermission(
+                context, Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED) {
+
+            coordinateCameraAccess();
+        } else {
+            requestPermissions(
+                    new String[]{Manifest.permission.CAMERA},
+                    REQUEST_ACCESS_CAMERA_ID);
+        }
+    }
+
+    private void coordinateCameraAccess() {
+
+        Fragment cameraFragment = CameraXFragment.newInstance();
+        Bundle args = new Bundle();
+        float[] featuresArray = new float[3];
+
+        featuresArray[0] = curFaceImageView.getLeftEyeOpenProbability();
+        featuresArray[1] = curFaceImageView.getRightEyeOpenProbability();
+        featuresArray[2] = curFaceImageView.getSmilingProbability();
+
+        // Deprecated... but the alternative is still in alpha... great!
+        cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
+        args.putInt("cameraXMode", CameraXFragment.CAMERA_MODE_COMPARE);
+        args.putFloatArray("facialFeaturesArray", featuresArray);
+        cameraFragment.setArguments(args);
+
+        getParentFragmentManager().beginTransaction()
+                .replace(R.id.menu_container, cameraFragment)
+                .addToBackStack("CAMERA_TRANSITION")
+                .commit();
     }
 
     @Override

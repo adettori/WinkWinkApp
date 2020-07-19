@@ -37,7 +37,7 @@ public class BluetoothListFragment extends Fragment
     private static final int REQUEST_DISCOVER_BLUETOOTH_ENABLE_ID = 10;
     private static final int REQUEST_BOND_BLUETOOTH_ENABLE_ID = 11;
     private static final int REQUEST_CAMERA2_FRAGMENT_ID = 12;
-    private static final int REQUEST_ACCESS_CAMERA = 13;
+    private static final int REQUEST_ACCESS_CAMERA_ID = 13;
 
     private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
@@ -195,7 +195,7 @@ public class BluetoothListFragment extends Fragment
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         // If request is cancelled, the result arrays are empty.
-        if (requestCode == REQUEST_ACCESS_CAMERA) {
+        if (requestCode == REQUEST_ACCESS_CAMERA_ID) {
             if (grantResults.length > 0 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
@@ -233,7 +233,7 @@ public class BluetoothListFragment extends Fragment
         } else {
             requestPermissions(
                     new String[]{Manifest.permission.CAMERA},
-                    REQUEST_ACCESS_CAMERA);
+                    REQUEST_ACCESS_CAMERA_ID);
         }
     }
 
