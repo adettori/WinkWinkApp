@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
+import androidx.exifinterface.media.ExifInterface;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -36,6 +38,7 @@ import com.google.mlkit.vision.face.FaceDetector;
 import com.google.mlkit.vision.face.FaceDetectorOptions;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
@@ -53,8 +56,6 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
     public final static String TAG = "CameraXTest";
     public final static int CAMERA_MODE_COMPARE = 1;
     public final static int CAMERA_MODE_PHOTO = 2;
-    //TODO
-    public final static int CAMERA_MODE_EASTEREGG = 3;
 
     private int ACTIVE_MODE;
 
@@ -81,8 +82,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
             int mode = args.getInt("cameraXMode");
 
-            if(mode == CAMERA_MODE_COMPARE || mode == CAMERA_MODE_PHOTO
-                    || mode == CAMERA_MODE_EASTEREGG)
+            if(mode == CAMERA_MODE_COMPARE || mode == CAMERA_MODE_PHOTO)
                 ACTIVE_MODE = mode;
             else
                 ACTIVE_MODE = CAMERA_MODE_PHOTO;
@@ -108,7 +108,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         Button btn = view.findViewById(R.id.picture);
         btn.setOnClickListener(this);
 
-        if(ACTIVE_MODE == CAMERA_MODE_COMPARE || ACTIVE_MODE == CAMERA_MODE_EASTEREGG)
+        if(ACTIVE_MODE == CAMERA_MODE_COMPARE)
             view.findViewById(R.id.btn_container).setVisibility(View.GONE);
     }
 
@@ -139,7 +139,8 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 e.printStackTrace();
             }
 
-            Preview preview = new Preview.Builder().build();
+            Preview preview = new Preview.Builder()
+                    .build();
             CameraSelector cameraSelector = new CameraSelector.Builder()
                     .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
                     .build();
@@ -149,12 +150,14 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 assert cameraProvider != null;
                 cameraProvider.unbindAll();
 
-                // Bind use cases to camera
+                // Bind use cases to camera provider
                 Camera camera;
 
                 if(ACTIVE_MODE == CAMERA_MODE_PHOTO) {
 
-                    imageCapture = new ImageCapture.Builder().build();
+                    imageCapture = new ImageCapture.Builder()
+                            .setTargetResolution(new Size(720, 1280))
+                            .build();
                     camera = cameraProvider.bindToLifecycle(getActivity(), cameraSelector,
                             preview, imageCapture);
                 } else {
@@ -207,8 +210,22 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                         Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
                         Log.d(TAG, msg);
 
+                        ExifInterface ei = null;
+
+                        try {
+                            ei = new ExifInterface(savedUri.getPath());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        assert ei != null;
+                        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+                                ExifInterface.ORIENTATION_NORMAL);
+
                         Intent resultIntent = new Intent();
                         resultIntent.putExtra("guestFaceUri", savedUri);
+                        resultIntent.putExtra("guestFaceRotation", orientation);
+
                         getTargetFragment().onActivityResult(getTargetRequestCode(),
                                 Activity.RESULT_OK, resultIntent);
 
