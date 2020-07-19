@@ -218,7 +218,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
             Log.e("BluetoothServer", "Received: " + totBytes);
 
         } catch (IOException e) {
-            Log.e("BluetoothServer", "Received" + totBytes);
+            Log.e("BluetoothServer", "Received: " + totBytes);
             e.printStackTrace();
         }
     }

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -60,6 +62,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
     private int ACTIVE_MODE;
 
     private PreviewView viewFinder;
+    private ImageView viewReminder;
 
     private ImageCapture imageCapture;
     private ImageAnalysis imageAnalyzer;
@@ -67,6 +70,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
     // Left eye, right eye, smile probabilities
     private float[] faceToCompare;
+    private Drawable imgReminder;
 
     public CameraXFragment() {}
 
@@ -105,11 +109,16 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
         viewFinder = view.findViewById(R.id.preview);
 
+        viewReminder = view.findViewById(R.id.view_reminder);
+
         Button btn = view.findViewById(R.id.picture);
         btn.setOnClickListener(this);
 
-        if(ACTIVE_MODE == CAMERA_MODE_COMPARE)
+        if(ACTIVE_MODE == CAMERA_MODE_COMPARE) {
             view.findViewById(R.id.btn_container).setVisibility(View.GONE);
+            viewReminder.setImageDrawable(imgReminder);
+            viewReminder.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -232,6 +241,11 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                         getParentFragmentManager().popBackStack();
                     }
         });
+    }
+
+    public void setReminderDrawable(Drawable dr) {
+
+        imgReminder = dr;
     }
 
     private static class FacialFeaturesAnalyzer implements ImageAnalysis.Analyzer,

@@ -8,7 +8,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,6 +41,7 @@ public class LobbyFragment extends Fragment
 
     private Switch btSwitch;
     private Button goButton;
+    private ImageView faceView;
 
     private BluetoothAdapter bta;
     private BluetoothToggleReceiver br;
@@ -79,12 +83,12 @@ public class LobbyFragment extends Fragment
 
         File saveFile = new File(activity.getExternalFilesDir(null), saveName);
 
-        ImageView imgView = view.findViewById(R.id.face_view);
+        faceView = view.findViewById(R.id.face_view);
 
         goButton = view.findViewById(R.id.go_button);
         goButton.setOnClickListener(this);
 
-        lbs = new BluetoothHostServer(saveFile, imgView, goButton, this);
+        lbs = new BluetoothHostServer(saveFile, faceView, goButton, this);
 
         btSwitch = view.findViewById(R.id.bt_switch);
         btSwitch.setOnCheckedChangeListener(this);
@@ -206,7 +210,7 @@ public class LobbyFragment extends Fragment
 
     private void coordinateCameraAccess() {
 
-        Fragment cameraFragment = CameraXFragment.newInstance();
+        CameraXFragment cameraFragment = CameraXFragment.newInstance();
         Bundle args = new Bundle();
         float[] featuresArray = null;
 
@@ -223,6 +227,10 @@ public class LobbyFragment extends Fragment
         args.putInt("cameraXMode", CameraXFragment.CAMERA_MODE_COMPARE);
         args.putFloatArray("facialFeaturesArray", featuresArray);
         cameraFragment.setArguments(args);
+
+        //TODO
+        // Find a better way to pass the drawable
+        cameraFragment.setReminderDrawable(faceView.getDrawable());
 
         getParentFragmentManager().beginTransaction()
                 .replace(R.id.menu_container, cameraFragment)
