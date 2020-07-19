@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -182,11 +183,13 @@ public class BluetoothListFragment extends Fragment
             assert lastRefDev != null;
 
             Uri faceURI = data.getParcelableExtra("guestFaceUri");
-            //int rotation = data.getParcelableExtra("guestFaceRotation");
+            int faceRotation = data.getIntExtra("guestFaceRotation", Surface.ROTATION_0);
 
             assert faceURI != null;
+
             BluetoothGuestClient sendTask =
-                    new BluetoothGuestClient(lastRefDev, new File(faceURI.getPath()));
+                    new BluetoothGuestClient(lastRefDev, "testName", faceRotation,
+                            new File(faceURI.getPath()));
 
             if(btSenderThread == null || !btSenderThread.isAlive()) {
                 btSenderThread = new Thread(sendTask);

@@ -13,45 +13,65 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
  * Protocol:
- * 2 byte: length n of the username
- * n byte: username
+ * 4 byte: length n of the username
  * 4 byte: image rotation
  * 4 byte: size m of the image
+ * n byte: username
  * m byte: image
  */
 
 public class BluetoothGuestClient implements Runnable {
 
-    private static final int PROTOCOL_LEN = 4;
-    private static final int PROTOCOL_COMMAND = 1;
+    private static final int PROTOCOL_USER_LEN = 4;
+    private static final int PROTOCOL_IMAGE_ROT = 4;
+    private static final int PROTOCOL_IMAGE_LEN = 4;
 
-    UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+    private UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
-    BluetoothDevice btd;
+    private BluetoothDevice btd;
+
+    private File dataFile = null;
+    private Bitmap imgToSend = null;
+
+    byte[] lenUserName;
+    byte[] imgRotation;
+    byte[] lenImage;
+    byte[] userName;
     byte[] toSend = null;
-    File dataFile = null;
-    Bitmap imgToSend = null;
 
-    public BluetoothGuestClient(BluetoothDevice bDevice, byte[] data) {
+    public BluetoothGuestClient(BluetoothDevice bDevice, String name, int rotation, byte[] data) {
 
-        btd = bDevice;
+        this(bDevice, name, rotation);
         toSend = data;
     }
 
-    public BluetoothGuestClient(BluetoothDevice bDevice, Bitmap img) {
+    public BluetoothGuestClient(BluetoothDevice bDevice, String name, int rotation, Bitmap img) {
 
-        btd = bDevice;
+        this(bDevice, name, rotation);
         imgToSend = img;
     }
 
-    public BluetoothGuestClient(BluetoothDevice bDevice, File savedFile) {
+    public BluetoothGuestClient(BluetoothDevice bDevice, String name, int rotation, File savedFile) {
 
-        btd = bDevice;
+        this(bDevice, name, rotation);
         dataFile = savedFile;
+    }
+
+    BluetoothGuestClient(BluetoothDevice bDevice, String name, int rotation) {
+
+        //TODO
+        // Remove risk of overflow
+        btd = bDevice;
+        userName = name.getBytes(StandardCharsets.UTF_8);
+        //TODO
+        // This conversion method isn't exactly architecture independent, to fix
+        lenUserName = ByteBuffer.allocate(PROTOCOL_USER_LEN).putInt(userName.length).array();
+        imgRotation = ByteBuffer.allocate(PROTOCOL_IMAGE_ROT).putInt(rotation).array();
     }
 
     @Override
@@ -76,6 +96,8 @@ public class BluetoothGuestClient implements Runnable {
             toSend = stream.toByteArray();
         }
 
+        lenImage = ByteBuffer.allocate(PROTOCOL_IMAGE_LEN).putInt(toSend.length).array();
+
         try (BluetoothSocket bs = btd.createRfcommSocketToServiceRecord(myId)) {
 
             bs.connect();
@@ -90,9 +112,15 @@ public class BluetoothGuestClient implements Runnable {
 
         OutputStream os = bs.getOutputStream();
 
-        ByteBuffer b = ByteBuffer.allocate(toSend.length + PROTOCOL_LEN + PROTOCOL_COMMAND);
-        b.putInt(toSend.length);
-        b.put((byte)0);
+        int payloadSize = PROTOCOL_USER_LEN + userName.length +
+                PROTOCOL_IMAGE_ROT + PROTOCOL_IMAGE_LEN + toSend.length;
+
+        ByteBuffer b = ByteBuffer.allocate(payloadSize);
+
+        b.put(lenUserName);
+        b.put(imgRotation);
+        b.put(lenImage);
+        b.put(userName);
         b.put(toSend);
 
         if(!Thread.interrupted()) {

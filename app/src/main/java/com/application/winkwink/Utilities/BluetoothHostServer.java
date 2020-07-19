@@ -21,11 +21,12 @@ import com.google.mlkit.vision.face.FaceDetector;
 import com.google.mlkit.vision.face.FaceDetectorOptions;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -33,15 +34,22 @@ import java.util.concurrent.Executors;
 
 /**
  * Protocol:
- * 2 byte: length n of the username
- * n byte: username
+ * 4 byte: length n of the username
  * 4 byte: image rotation
  * 4 byte: size m of the image
+ * n byte: username
  * m byte: image
  */
 
 public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Face>>,
         OnFailureListener {
+
+    private static final int PROTOCOL_USER_LEN = 4;
+    private static final int PROTOCOL_IMAGE_ROT = 4;
+    private static final int PROTOCOL_IMAGE_LEN = 4;
+
+    private static final String myName = "it.application.winkwink bluetoothServer";
+    private static final UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
     private WeakReference<Button> goButton;
     private WeakReference<ImageView> imgView;
@@ -51,8 +59,11 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
     private File saveLoc;
 
-    private static final String myName = "it.application.winkwink bluetoothServer";
-    private static final UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+    byte[] lenUserName;
+    byte[] userName;
+    byte[] imgRotation;
+    byte[] lenImage;
+    byte[] image;
 
     public BluetoothHostServer(File dirFile, ImageView imgV, Button btn, FaceSharer faceS) {
 
@@ -61,6 +72,10 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
         imgView = new WeakReference<>(imgV);
         faceSharer = new WeakReference<>(faceS);
         saverExecutor = Executors.newSingleThreadExecutor();
+
+        lenUserName = new byte[PROTOCOL_USER_LEN];
+        imgRotation = new byte[PROTOCOL_IMAGE_ROT];
+        lenImage = new byte[PROTOCOL_IMAGE_LEN];
     }
 
     @Override
@@ -75,13 +90,21 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
             while(!Thread.interrupted()) {
 
+                int imgRotation;
+                byte[] bitmapBuffer;
+                String username;
+
                 //Receive the data via bluetooth
                 BluetoothSocket bs = bss.accept();
-                byte[] bitmapBuffer = handleConnection(bs);
+                BluetoothProtocolPayload protObj = handleConnection(bs);
                 bs.close();
 
-                if(bitmapBuffer == null)
+                if(protObj == null)
                     continue;
+
+                imgRotation = protObj.getImgRot();
+                username = protObj.getUsername();
+                bitmapBuffer = protObj.getImgData();
 
                 saverExecutor.submit(new ImageSaver(bitmapBuffer, saveLoc));
 
@@ -105,9 +128,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
                 BitmapDrawable drawable = (BitmapDrawable) view.getDrawable();
                 Bitmap bmp = drawable.getBitmap();
 
-                //TODO
-                // Rotation
-                InputImage toDetect = InputImage.fromBitmap(bmp, 0);
+                InputImage toDetect = InputImage.fromBitmap(bmp, imgRotation);
 
                 faceDet.process(toDetect)
                         .addOnSuccessListener(this)
@@ -121,57 +142,89 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
         saverExecutor.shutdown();
     }
 
-    private byte[] handleConnection(BluetoothSocket bSocket) {
+    private BluetoothProtocolPayload handleConnection(BluetoothSocket bSocket) {
 
-        byte[] lenMsg = new byte[4];
-        byte[] command = new byte[1];
-        byte[] tmpBuffer = new byte[16384];
+        //TODO
+        // Show some kind of loading to the user
 
-        byte[] dataArray = null;
+        BluetoothProtocolPayload result = null;
 
-        int numBytes;
-        int dataSize;
-        int totBytes = 0;
+        byte[] dataArray;
+
+        int readResult;
+
+        int lenUserNameInt;
+        int imgRotationInt;
+        int lenImageInt;
+
+        int totPayload = 0;
+        int curPos;
 
         try {
             InputStream is = bSocket.getInputStream();
 
-            numBytes = is.read(lenMsg);
-            numBytes = is.read(command);
+            readResult = is.read(lenUserName);
+            if(readResult == -1) return null;
+            lenUserNameInt = ByteBuffer.wrap(lenUserName).getInt();
 
-            dataSize = ByteBuffer.wrap(lenMsg).getInt();
-            ByteBuffer buffer = ByteBuffer.allocate(dataSize);
+            readResult = is.read(imgRotation);
+            if(readResult == -1) return null;
+            imgRotationInt = ByteBuffer.wrap(imgRotation).getInt();
 
-            //TODO
-            // Show some kind of loading to the user
+            readResult = is.read(lenImage);
+            if(readResult == -1) return null;
+            lenImageInt = ByteBuffer.wrap(lenImage).getInt();
+
+            dataArray = new byte[lenUserNameInt + lenImageInt];
+
+            readDataFromStream(dataArray, is);
+
+            curPos = 0;
+            userName = Arrays.copyOfRange(dataArray, curPos, curPos + lenUserNameInt);
+
+            /* Read until the end just to avoid OutOfBounds due to bluetooth socket closing */
+            curPos += lenUserNameInt;
+            image = Arrays.copyOfRange(dataArray, curPos, dataArray.length);
+
+            result = new BluetoothProtocolPayload(imgRotationInt,
+                    new String(userName, StandardCharsets.UTF_8), image);
+
+            Log.e("test", new String(userName, StandardCharsets.UTF_8));
+
+        } catch (IOException e) {
+            Log.e("Size: ", "" + totPayload);
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+    private void readDataFromStream(byte[] targetBuffer, InputStream is) {
+
+        ByteBuffer buffer = ByteBuffer.wrap(targetBuffer);
+        byte[] tmpBuffer = new byte[16384];
+
+        int numBytes;
+        int totBytes = 0;
+
+        /* The bluetooth socket gets sometimes closed right before finishing, ignore and read
+            the data anyway */
+        try {
 
             Log.e("BluetoothServer", "Total: "+buffer.array().length);
 
-            /* The bluetooth socket gets sometimes closed right before finishing, ignore and read
-            the data anyway */
-            try {
-                while ((numBytes = is.read(tmpBuffer)) != -1) {
+            while ((numBytes = is.read(tmpBuffer)) != -1) {
 
-                    totBytes += numBytes;
-                    buffer.put(tmpBuffer, 0, numBytes);
-
-                    if (totBytes >= dataSize)
-                        break;
-                }
-            } catch (IOException e1) {
-                e1.printStackTrace();
+                totBytes += numBytes;
+                buffer.put(tmpBuffer, 0, numBytes);
             }
 
             Log.e("BluetoothServer", "Received: " + totBytes);
-
-            dataArray = buffer.array();
 
         } catch (IOException e) {
             Log.e("test", ""+totBytes);
             e.printStackTrace();
         }
-
-        return dataArray;
     }
 
     @Override
@@ -205,5 +258,23 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
                         faceSh.setFace(finalTarget);
             });
         }
+    }
+
+    private static class BluetoothProtocolPayload {
+
+        private int imgRot;
+        private String username;
+        private byte[] imgData;
+
+        BluetoothProtocolPayload(int rot, String name, byte[] data) {
+
+            imgRot = rot;
+            username = name;
+            imgData = data;
+        }
+
+        public int getImgRot() { return imgRot; }
+        public String getUsername() { return username; }
+        public byte[] getImgData() { return  imgData; }
     }
 }
