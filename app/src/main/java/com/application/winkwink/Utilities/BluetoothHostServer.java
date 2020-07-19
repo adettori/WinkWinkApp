@@ -82,6 +82,11 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     public void run() {
 
         BluetoothAdapter bta = BluetoothAdapter.getDefaultAdapter();
+        FaceDetectorOptions faceOpt = new FaceDetectorOptions.Builder()
+                .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+                .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                .build();
+        FaceDetector faceDet = FaceDetection.getClient(faceOpt);
 
         if(bta == null)
             return;
@@ -112,14 +117,6 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
                 BitmapLoader bml = new BitmapLoader(imgView.get(), bitmapBuffer);
                 bml.run();
 
-                //Find the facial features of the image
-                FaceDetectorOptions faceOpt = new FaceDetectorOptions.Builder()
-                        .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
-                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
-                        .build();
-
-                FaceDetector faceDet = FaceDetection.getClient(faceOpt);
-
                 ImageView view = imgView.get();
 
                 assert view != null;
@@ -130,6 +127,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
                 InputImage toDetect = InputImage.fromBitmap(bmp, imgRotation);
 
+                //Find the facial features of the image
                 faceDet.process(toDetect)
                         .addOnSuccessListener(this)
                         .addOnFailureListener(this);
@@ -189,8 +187,6 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
             result = new BluetoothProtocolPayload(imgRotationInt,
                     new String(userName, StandardCharsets.UTF_8), image);
 
-            Log.e("test", new String(userName, StandardCharsets.UTF_8));
-
         } catch (IOException e) {
             Log.e("Size: ", "" + totPayload);
             e.printStackTrace();
@@ -222,7 +218,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
             Log.e("BluetoothServer", "Received: " + totBytes);
 
         } catch (IOException e) {
-            Log.e("test", ""+totBytes);
+            Log.e("BluetoothServer", "Received" + totBytes);
             e.printStackTrace();
         }
     }

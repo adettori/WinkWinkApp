@@ -135,7 +135,6 @@ public class BluetoothGuestClient implements Runnable {
         Bitmap result = null;
 
         try {
-            Log.e("test", loc.toString());
             FileInputStream fileStream = new FileInputStream(loc);
 
              result = BitmapFactory.decodeStream(fileStream);
