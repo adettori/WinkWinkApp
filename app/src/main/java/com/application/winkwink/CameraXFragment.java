@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -63,6 +65,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
     private PreviewView viewFinder;
     private ImageView viewReminder;
+    private TextView countdown;
 
     private ImageCapture imageCapture;
     private ImageAnalysis imageAnalyzer;
@@ -71,6 +74,8 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
     // Left eye, right eye, smile probabilities
     private float[] faceToCompare;
     private Drawable imgReminder;
+
+    private CountDownTimer countDownTimer;
 
     public CameraXFragment() {}
 
@@ -95,7 +100,14 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor();
+
         startCamera();
+    }
+
+    public void onResume() {
+
+        super.onResume();
+        countDownTimer.start();
     }
 
     @Override
@@ -111,14 +123,34 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
         viewReminder = view.findViewById(R.id.view_reminder);
 
+        countdown = view.findViewById(R.id.countdown);
+
         Button btn = view.findViewById(R.id.picture);
         btn.setOnClickListener(this);
 
         if(ACTIVE_MODE == CAMERA_MODE_COMPARE) {
             view.findViewById(R.id.btn_container).setVisibility(View.GONE);
+
             viewReminder.setImageDrawable(imgReminder);
             viewReminder.setVisibility(View.VISIBLE);
+
+            countdown.setVisibility(View.VISIBLE);
+
+            countDownTimer = new CountDownTimer(5000, 1) {
+
+                public void onTick(long millisUntilFinished) {
+                    String scoreStr = getResources().getString(R.string.game_score);
+
+                    scoreStr = String.format(scoreStr, millisUntilFinished);
+                    countdown.setText(scoreStr);
+                }
+
+                public void onFinish() {
+                    countdown.setText("done!");
+                }
+            };
         }
+
     }
 
     @Override
