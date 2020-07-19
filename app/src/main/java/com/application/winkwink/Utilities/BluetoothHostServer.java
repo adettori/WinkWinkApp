@@ -28,6 +28,8 @@ import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Protocol:
@@ -45,6 +47,8 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     private WeakReference<ImageView> imgView;
     private WeakReference<FaceSharer> faceSharer;
 
+    private ExecutorService saverExecutor;
+
     private File saveLoc;
 
     private static final String myName = "it.application.winkwink bluetoothServer";
@@ -56,6 +60,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
         goButton = new WeakReference<>(btn);
         imgView = new WeakReference<>(imgV);
         faceSharer = new WeakReference<>(faceS);
+        saverExecutor = Executors.newSingleThreadExecutor();
     }
 
     @Override
@@ -77,6 +82,8 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
                 if(bitmapBuffer == null)
                     continue;
+
+                saverExecutor.submit(new ImageSaver(bitmapBuffer, saveLoc));
 
                 //Load the image inside the ViewImage
                 BitmapLoader bml = new BitmapLoader(imgView.get(), bitmapBuffer);
@@ -158,28 +165,6 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
             dataArray = buffer.array();
 
-            FileOutputStream output = null;
-
-            try {
-
-                output = new FileOutputStream(saveLoc);
-                output.write(dataArray);
-            } catch (IOException e) {
-
-                e.printStackTrace();
-            } finally {
-
-                if (null != output) {
-                    try {
-                        output.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-
-
         } catch (IOException e) {
             Log.e("test", ""+totBytes);
             e.printStackTrace();
@@ -199,16 +184,25 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
         FaceSharer faceSh = faceSharer.get();
         Button btn = goButton.get();
-        Face target = faces.get(0);
+        Face target = null;
+
+        if(faces.size() > 0)
+            target = faces.get(0);
+
+        //TODO
+        // Notify the user that there is no face to imitate
 
         if(btn != null)
             //TODO
             // Refactor urgently!
+        {
+            Face finalTarget = target;
             btn.post(() -> {
                     btn.setVisibility(View.VISIBLE);
 
                     if(faceSh != null && faces.size() > 0)
-                        faceSh.setFace(target);
+                        faceSh.setFace(finalTarget);
             });
+        }
     }
 }
