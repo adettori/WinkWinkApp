@@ -110,6 +110,9 @@ public class BluetoothListFragment extends Fragment
     public void onPause() {
         super.onPause();
 
+        if(btSenderThread != null && btSenderThread.isAlive())
+            btSenderThread.interrupt();
+
         requireContext().unregisterReceiver(bdr);
     }
 
@@ -287,7 +290,6 @@ public class BluetoothListFragment extends Fragment
                 bluetoothName = v.findViewById(R.id.cv_main_line);
                 bluetoothAddress = v.findViewById(R.id.cv_secondary_line);
                 bluetoothIcon = v.findViewById(R.id.cv_icon);
-
             }
         }
 

@@ -118,6 +118,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
             e.printStackTrace();
         }
 
+        saverExecutor.shutdown();
     }
 
     private byte[] handleConnection(BluetoothSocket bSocket) {

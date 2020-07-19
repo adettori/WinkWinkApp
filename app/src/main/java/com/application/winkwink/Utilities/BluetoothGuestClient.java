@@ -86,20 +86,19 @@ public class BluetoothGuestClient implements Runnable {
         }
     }
 
-    private void handleConnection(BluetoothSocket bs) {
+    private void handleConnection(BluetoothSocket bs) throws IOException {
 
-        try {
-            OutputStream os = bs.getOutputStream();
+        OutputStream os = bs.getOutputStream();
 
-            ByteBuffer b = ByteBuffer.allocate(toSend.length + PROTOCOL_LEN + PROTOCOL_COMMAND);
-            b.putInt(toSend.length);
-            b.put((byte)0);
-            b.put(toSend);
+        ByteBuffer b = ByteBuffer.allocate(toSend.length + PROTOCOL_LEN + PROTOCOL_COMMAND);
+        b.putInt(toSend.length);
+        b.put((byte)0);
+        b.put(toSend);
+
+        if(!Thread.interrupted()) {
 
             os.write(b.array());
             os.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
