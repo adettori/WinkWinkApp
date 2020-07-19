@@ -26,7 +26,6 @@ import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.gms.common.util.ArrayUtils;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -66,7 +65,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
     private ExecutorService cameraExecutor;
 
     // Left eye, right eye, smile probabilities
-    private Float[] faceToCompare;
+    private float[] faceToCompare;
 
     public CameraXFragment() {}
 
@@ -88,11 +87,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             else
                 ACTIVE_MODE = CAMERA_MODE_PHOTO;
 
-            faceToCompare = new Float[3];
-
-            faceToCompare[0] = args.getFloat("faceLeftEye");
-            faceToCompare[1] = args.getFloat("faceRightEye");
-            faceToCompare[2] = args.getFloat("faceSmile");
+            faceToCompare = args.getFloatArray("facialFeaturesArray");
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor();
@@ -229,7 +224,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         private ImageProxy curImage;
         private Boolean[] faceToCompareFeatures;
 
-        public FacialFeaturesAnalyzer(Float[] probabilitiesArray) {
+        public FacialFeaturesAnalyzer(float[] probabilitiesArray) {
 
             this();
 
@@ -281,7 +276,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
             Face curFace = faces.get(0);
 
-            Float[] curFaceFeatures = {curFace.getLeftEyeOpenProbability(),
+            float[] curFaceFeatures = {curFace.getLeftEyeOpenProbability(),
                     curFace.getRightEyeOpenProbability(), curFace.getSmilingProbability()};
 
             if(Arrays.equals(facialFeaturesSolver(curFaceFeatures), faceToCompareFeatures))
@@ -290,7 +285,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 Log.e(TAG, "Booo!");
         }
 
-        private Boolean[] facialFeaturesSolver(Float[] input) {
+        private Boolean[] facialFeaturesSolver(float[] input) {
 
             Boolean[] result = new Boolean[3];
             double threshold = 0.70;
