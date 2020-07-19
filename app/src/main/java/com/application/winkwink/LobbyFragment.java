@@ -208,11 +208,15 @@ public class LobbyFragment extends Fragment
 
         Fragment cameraFragment = CameraXFragment.newInstance();
         Bundle args = new Bundle();
-        float[] featuresArray = new float[3];
+        float[] featuresArray = null;
 
-        featuresArray[0] = curFaceImageView.getLeftEyeOpenProbability();
-        featuresArray[1] = curFaceImageView.getRightEyeOpenProbability();
-        featuresArray[2] = curFaceImageView.getSmilingProbability();
+        if(curFaceImageView != null) {
+            featuresArray = new float[3];
+
+            featuresArray[0] = curFaceImageView.getLeftEyeOpenProbability();
+            featuresArray[1] = curFaceImageView.getRightEyeOpenProbability();
+            featuresArray[2] = curFaceImageView.getSmilingProbability();
+        }
 
         // Deprecated... but the alternative is still in alpha... great!
         cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
