@@ -14,6 +14,7 @@ public class BitmapLoader implements Runnable {
     private WeakReference<ImageView> imgView;
 
     private File saveLoc;
+    private byte[] bitmapBuffer;
 
     BitmapLoader(ImageView view, File dirFile) {
 
@@ -21,19 +22,32 @@ public class BitmapLoader implements Runnable {
         saveLoc = dirFile;
     }
 
+    BitmapLoader(ImageView view, byte[] buffer) {
+
+        imgView = new WeakReference<>(view);
+        bitmapBuffer = buffer;
+    }
+
     @Override
     public void run() {
 
-        final ImageView tmp = imgView.get();
-        final Bitmap result;
+        ImageView tmpImgV = imgView.get();
+        Bitmap result = null;
 
         try {
-            FileInputStream is = new FileInputStream(saveLoc);
-            result = BitmapFactory.decodeStream(is);
+            if(saveLoc != null) {
+                FileInputStream is = new FileInputStream(saveLoc);
+                result = BitmapFactory.decodeStream(is);
+            } else if(bitmapBuffer != null) {
 
-            if(tmp != null)
+                result = BitmapFactory.decodeByteArray(bitmapBuffer, 0,
+                        bitmapBuffer.length);
+            }
 
-                tmp.post(() -> tmp.setImageBitmap(result));
+            if(tmpImgV != null) {
+                Bitmap finalResult = result;
+                tmpImgV.post(() -> tmpImgV.setImageBitmap(finalResult));
+            }
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();

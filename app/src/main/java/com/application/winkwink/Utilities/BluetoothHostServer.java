@@ -41,8 +41,6 @@ import java.util.UUID;
 public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Face>>,
         OnFailureListener {
 
-    private BitmapLoader bml;
-
     private WeakReference<Button> goButton;
     private WeakReference<ImageView> imgView;
     private WeakReference<FaceSharer> faceSharer;
@@ -55,7 +53,6 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     public BluetoothHostServer(File dirFile, ImageView imgV, Button btn, FaceSharer faceS) {
 
         saveLoc = dirFile;
-        bml = new BitmapLoader(imgV, dirFile);
         goButton = new WeakReference<>(btn);
         imgView = new WeakReference<>(imgV);
         faceSharer = new WeakReference<>(faceS);
@@ -73,12 +70,19 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
             while(!Thread.interrupted()) {
 
+                //Receive the data via bluetooth
                 BluetoothSocket bs = bss.accept();
-                handleConnection(bs);
+                byte[] bitmapBuffer = handleConnection(bs);
                 bs.close();
 
+                if(bitmapBuffer == null)
+                    continue;
+
+                //Load the image inside the ViewImage
+                BitmapLoader bml = new BitmapLoader(imgView.get(), bitmapBuffer);
                 bml.run();
 
+                //Find the facial features of the image
                 FaceDetectorOptions faceOpt = new FaceDetectorOptions.Builder()
                         .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
                         .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
@@ -109,11 +113,13 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
     }
 
-    private void handleConnection(BluetoothSocket bSocket) {
+    private byte[] handleConnection(BluetoothSocket bSocket) {
 
         byte[] lenMsg = new byte[4];
         byte[] command = new byte[1];
         byte[] tmpBuffer = new byte[16384];
+
+        byte[] dataArray = null;
 
         int numBytes;
         int dataSize;
@@ -150,12 +156,14 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
             Log.e("BluetoothServer", "Received: " + totBytes);
 
+            dataArray = buffer.array();
+
             FileOutputStream output = null;
 
             try {
 
                 output = new FileOutputStream(saveLoc);
-                output.write(buffer.array());
+                output.write(dataArray);
             } catch (IOException e) {
 
                 e.printStackTrace();
@@ -169,10 +177,15 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
                     }
                 }
             }
+
+
+
         } catch (IOException e) {
             Log.e("test", ""+totBytes);
             e.printStackTrace();
         }
+
+        return dataArray;
     }
 
     @Override
