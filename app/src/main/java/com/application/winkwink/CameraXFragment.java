@@ -193,8 +193,6 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 e.printStackTrace();
             }
 
-            preview = new Preview.Builder()
-                    .build();
             CameraSelector cameraSelector = new CameraSelector.Builder()
                     .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
                     .build();
@@ -204,21 +202,33 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 assert cameraProvider != null;
                 cameraProvider.unbindAll();
 
+                if(preview == null)
+                    preview = new Preview.Builder()
+                            .build();
+
+                if(imageAnalyzer == null) {
+
+                    imageAnalyzer = new ImageAnalysis.Builder().build();
+                    imageAnalyzer.setAnalyzer(cameraExecutor,
+                            new FacialFeaturesAnalyzer(faceToCompare));
+                }
+
+                if(imageCapture == null) {
+
+                    imageCapture = new ImageCapture.Builder()
+                            .setTargetResolution(new Size(720, 1280))
+                            .build();
+                }
+
                 // Bind use cases to camera provider
                 Camera camera = null;
 
                 if(ACTIVE_MODE == CAMERA_MODE_PHOTO) {
 
-                    imageCapture = new ImageCapture.Builder()
-                            .setTargetResolution(new Size(720, 1280))
-                            .build();
                     camera = cameraProvider.bindToLifecycle(getActivity(), cameraSelector,
                             preview, imageCapture);
                 } else if(ACTIVE_MODE == CAMERA_MODE_COMPARE) {
 
-                    imageAnalyzer = new ImageAnalysis.Builder().build();
-                    imageAnalyzer.setAnalyzer(cameraExecutor,
-                            new FacialFeaturesAnalyzer(faceToCompare));
                     camera = cameraProvider.bindToLifecycle(getActivity(), cameraSelector,
                             preview, imageAnalyzer);
                 }
