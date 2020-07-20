@@ -72,9 +72,9 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
     private TextView countdownView;
 
     private ProcessCameraProvider cameraProvider;
-    private Preview preview;
-    private ImageCapture imageCapture;
-    private ImageAnalysis imageAnalyzer;
+    private Preview preview = null;
+    private ImageCapture imageCapture = null;
+    private ImageAnalysis imageAnalyzer = null;
 
     private ExecutorService cameraExecutor;
     private ExecutorService counterExecutor;
@@ -229,24 +229,16 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 assert cameraProvider != null;
                 cameraProvider.unbindAll();
 
-                if(preview == null)
-                    preview = new Preview.Builder()
-                            .build();
+                preview = new Preview.Builder().build();
 
-                if(imageAnalyzer == null) {
+                imageAnalyzer = new ImageAnalysis.Builder().build();
+                imageAnalyzer.setAnalyzer(cameraExecutor,
+                        new FacialFeaturesAnalyzer(faceToCompare,
+                                (AppCompatActivity) getActivity()));
 
-                    imageAnalyzer = new ImageAnalysis.Builder().build();
-                    imageAnalyzer.setAnalyzer(cameraExecutor,
-                            new FacialFeaturesAnalyzer(faceToCompare,
-                                    (AppCompatActivity) getActivity()));
-                }
-
-                if(imageCapture == null) {
-
-                    imageCapture = new ImageCapture.Builder()
-                            .setTargetResolution(new Size(720, 1280))
-                            .build();
-                }
+                imageCapture = new ImageCapture.Builder()
+                        .setTargetResolution(new Size(720, 1280))
+                        .build();
 
                 // Bind use cases to camera provider
                 Camera camera = null;
@@ -261,6 +253,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                             preview, imageAnalyzer);
                 }
 
+                assert camera != null;
                 preview.setSurfaceProvider(
                         viewFinder.createSurfaceProvider(camera.getCameraInfo()));
             } catch(Exception exc) {
