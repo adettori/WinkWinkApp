@@ -20,9 +20,12 @@ import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String preferredUsername;
     private SharedPreferences pref;
+    private SQLiteDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
         pref = getPreferences(MODE_PRIVATE);
 
         preferredUsername = pref.getString("preferredUsername", null);
+
+        db = SQLiteDatabase.openOrCreateDatabase(new File(getFilesDir(), "main.db"),
+                null);
     }
 
     @Override

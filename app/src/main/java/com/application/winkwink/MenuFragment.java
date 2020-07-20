@@ -12,6 +12,7 @@ import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import android.provider.BaseColumns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -110,4 +111,7 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
                     REQUEST_ACCESS_COARSE_LOCATION_ID);
         }
     }
+
+
+}
 }

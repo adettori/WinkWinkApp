@@ -315,7 +315,7 @@ public class BluetoothListFragment extends Fragment
                                                                        int viewType) {
             // create a new view
             View v = getLayoutInflater()
-                    .inflate(R.layout.card_view_item, parent, false);
+                    .inflate(R.layout.card_view_1_item, parent, false);
 
             return new MyViewHolder(v);
         }
