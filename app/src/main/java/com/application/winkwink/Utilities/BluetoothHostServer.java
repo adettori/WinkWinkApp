@@ -3,6 +3,7 @@ package com.application.winkwink.Utilities;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -11,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -58,6 +60,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     private WeakReference<ImageView> imgView;
     private WeakReference<TextView> textView;
     private WeakReference<FaceSharer> faceSharer;
+    private WeakReference<Context> context;
 
     private ExecutorService saverExecutor;
 
@@ -72,13 +75,15 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     String curUserName;
 
     public BluetoothHostServer(File dirFile, ImageView imgV, Button btn, TextView text,
-                               FaceSharer faceS) {
+                               FaceSharer faceS, Context cntx) {
 
         saveLoc = dirFile;
         goButton = new WeakReference<>(btn);
         imgView = new WeakReference<>(imgV);
         textView = new WeakReference<>(text);
         faceSharer = new WeakReference<>(faceS);
+        context = new WeakReference<>(cntx);
+
         saverExecutor = Executors.newSingleThreadExecutor();
 
         lenUserName = new byte[PROTOCOL_USER_LEN];
@@ -110,6 +115,12 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
                 //Receive the data via bluetooth
                 BluetoothSocket bs = bss.accept();
+
+                Context c = context.get();
+
+                if(c != null)
+                    Toast.makeText(c, R.string.receiving_data, Toast.LENGTH_SHORT).show();
+
                 BluetoothProtocolPayload protObj = handleConnection(bs);
                 bs.close();
 

@@ -2,7 +2,6 @@ package com.application.winkwink.Utilities;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.File;

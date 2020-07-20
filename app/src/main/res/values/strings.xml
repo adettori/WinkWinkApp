@@ -22,15 +22,13 @@
     <string name="discoverable">Discoverable</string>
     <string name="discover">Discover</string>
     <string name="lobby">Lobby</string>
-    <string name="lobby_desc_1">Waiting for a player to join...\n Press back to cancel.</string>
+    <string name="lobby_desc_1">Waiting for a player to join…\n Press back to cancel.</string>
     <string name="face_to_imitate">Face to imitate</string>
     <string name="go">Go!</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="image_to_imitate">Image to imitate</string>
     <string name="game_score">Score: %d</string>
     <string name="no_players">No players found in the photo. Retry.</string>
     <string name="too_many_players">Too many players in the photo!</string>
-
+    <string name="receiving_data">Receiving data…</string>
 
 </resources>

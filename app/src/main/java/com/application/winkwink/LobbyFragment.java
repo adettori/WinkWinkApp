@@ -91,7 +91,8 @@ public class LobbyFragment extends Fragment
         goButton = view.findViewById(R.id.go_button);
         goButton.setOnClickListener(this);
 
-        lbs = new BluetoothHostServer(saveFile, faceView, goButton, descText,this);
+        lbs = new BluetoothHostServer(saveFile, faceView, goButton, descText,
+                this, getContext());
 
         btSwitch = view.findViewById(R.id.bt_switch);
         btSwitch.setOnCheckedChangeListener(this);
