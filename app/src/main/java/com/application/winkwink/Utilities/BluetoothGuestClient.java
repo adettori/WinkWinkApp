@@ -30,8 +30,6 @@ public class BluetoothGuestClient implements Runnable {
     private static final int PROTOCOL_IMAGE_ROT = 4;
     private static final int PROTOCOL_IMAGE_LEN = 4;
 
-    private UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
-
     private BluetoothDevice btd;
 
     private File dataFile = null;
@@ -97,7 +95,7 @@ public class BluetoothGuestClient implements Runnable {
 
         lenImage = ByteBuffer.allocate(PROTOCOL_IMAGE_LEN).putInt(toSend.length).array();
 
-        try (BluetoothSocket bs = btd.createRfcommSocketToServiceRecord(myId)) {
+        try (BluetoothSocket bs = btd.createRfcommSocketToServiceRecord(BluetoothHostServer.myId)) {
 
             bs.connect();
             handleConnection(bs);

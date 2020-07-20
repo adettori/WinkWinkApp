@@ -3,6 +3,7 @@ package com.application.winkwink;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothServerSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -27,6 +28,9 @@ import com.application.winkwink.Utilities.FaceSharer;
 import com.google.mlkit.vision.face.Face;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LobbyFragment extends Fragment
         implements CompoundButton.OnCheckedChangeListener, View.OnClickListener, FaceSharer {
@@ -40,13 +44,15 @@ public class LobbyFragment extends Fragment
     private Switch btSwitch;
     private Button goButton;
     private ImageView faceView;
+    private TextView descText;
 
     private BluetoothAdapter bta;
     private BluetoothToggleReceiver br;
     private IntentFilter broadcastFilter;
 
-    private BluetoothHostServer lbs;
-    private Thread serverT;
+    private BluetoothServerSocket bss;
+    private ExecutorService bluetoothExecutor;
+    private File saveFile;
 
     private Face curFaceImageView;
 
@@ -79,16 +85,14 @@ public class LobbyFragment extends Fragment
 
         assert activity != null;
 
-        File saveFile = new File(activity.getExternalFilesDir(null), saveName);
+        saveFile = new File(activity.getExternalFilesDir(null), saveName);
 
-        TextView descText = view.findViewById(R.id.desc_text);
+        descText = view.findViewById(R.id.desc_text);
 
         faceView = view.findViewById(R.id.face_view);
 
         goButton = view.findViewById(R.id.go_button);
         goButton.setOnClickListener(this);
-
-        lbs = new BluetoothHostServer(saveFile, faceView, goButton, descText, this);
 
         btSwitch = view.findViewById(R.id.bt_switch);
         btSwitch.setOnCheckedChangeListener(this);
@@ -102,8 +106,18 @@ public class LobbyFragment extends Fragment
 
         Activity activity = getActivity();
 
-        serverT = new Thread(lbs);
-        serverT.start();
+        try {
+            bss = bta.listenUsingRfcommWithServiceRecord(
+                    BluetoothHostServer.myName, BluetoothHostServer.myId);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        BluetoothHostServer lbs =
+                new BluetoothHostServer(bss, saveFile, faceView, goButton, descText, this);
+
+        bluetoothExecutor = Executors.newSingleThreadExecutor();
+        bluetoothExecutor.submit(lbs);
 
         //Forces the synchronisation of the toggle button
         btSwitch.setChecked(false);
@@ -123,7 +137,13 @@ public class LobbyFragment extends Fragment
 
         assert activity != null;
         activity.unregisterReceiver(br);
-        serverT.interrupt();
+        try {
+            bss.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        bluetoothExecutor.shutdown();
     }
 
     @Override

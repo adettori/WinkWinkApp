@@ -295,17 +295,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                         Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
                         Log.d(TAG, msg);
 
-                        ExifInterface ei = null;
-
-                        try {
-                            ei = new ExifInterface(savedUri.getPath());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        assert ei != null;
-                        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
-                                ExifInterface.ORIENTATION_NORMAL);
+                        int orientation = preview.getTargetRotation();
 
                         Intent resultIntent = new Intent();
                         resultIntent.putExtra("guestFaceUri", savedUri);
@@ -337,8 +327,9 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
             this();
 
-            if(probabilitiesArray != null)
+            if(probabilitiesArray != null) {
                 faceToCompareFeatures = facialFeaturesSolver(probabilitiesArray);
+            }
 
             activity = new WeakReference<>(a);
         }
@@ -375,7 +366,6 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
             Log.e(TAG, "Detect failed");
             curImage.close();
-            e.printStackTrace();
         }
 
         @Override

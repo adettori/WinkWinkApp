@@ -49,12 +49,12 @@ import java.util.concurrent.Executors;
 public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Face>>,
         OnFailureListener {
 
+    public static final String myName = "it.application.winkwink bluetoothServer";
+    public static final UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+
     private static final int PROTOCOL_USER_LEN = 4;
     private static final int PROTOCOL_IMAGE_ROT = 4;
     private static final int PROTOCOL_IMAGE_LEN = 4;
-
-    private static final String myName = "it.application.winkwink bluetoothServer";
-    private static final UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
     private WeakReference<Button> goButton;
     private WeakReference<ImageView> imgView;
@@ -63,6 +63,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
     private ExecutorService saverExecutor;
 
+    private BluetoothServerSocket bss;
     private File saveLoc;
 
     byte[] lenUserName;
@@ -73,9 +74,10 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
     String curUserName;
 
-    public BluetoothHostServer(File dirFile, ImageView imgV, Button btn, TextView text,
-                               FaceSharer faceS) {
+    public BluetoothHostServer(BluetoothServerSocket socket, File dirFile, ImageView imgV,
+                               Button btn, TextView text, FaceSharer faceS) {
 
+        bss = socket;
         saveLoc = dirFile;
         goButton = new WeakReference<>(btn);
         imgView = new WeakReference<>(imgV);
@@ -103,9 +105,9 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
         if(bta == null)
             return;
 
-        try (BluetoothServerSocket bss = bta.listenUsingRfcommWithServiceRecord(myName,myId)) {
+        try {
 
-            while(!Thread.interrupted()) {
+            while(true) {
 
                 int imgRotation;
                 byte[] bitmapBuffer;
@@ -113,7 +115,6 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
                 //Receive the data via bluetooth
                 BluetoothSocket bs = bss.accept();
-
                 BluetoothProtocolPayload protObj = handleConnection(bs);
                 bs.close();
 
@@ -133,11 +134,11 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
                 assert view != null;
                 assert bmp != null;
 
+                InputImage toDetect = InputImage.fromBitmap(bmp, imgRotation);
+
                 //Load the image inside the ViewImage
                 BitmapLoader bml = new BitmapLoader(view, bmp);
                 bml.run();
-
-                InputImage toDetect = InputImage.fromBitmap(bmp, imgRotation);
 
                 curUserName = username;
 
@@ -150,7 +151,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        
         saverExecutor.shutdown();
     }
 
