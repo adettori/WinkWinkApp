@@ -16,17 +16,68 @@
 
 package com.application.winkwink;
 
+import android.accounts.AccountManager;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int REQUEST_USERNAME_ID = 100;
+
+    private String preferredUsername;
+    private SharedPreferences pref;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.main_layout);
+
+        pref = getPreferences(MODE_PRIVATE);
+
+        preferredUsername = pref.getString("preferredUsername", null);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(preferredUsername == null) {
+
+            Intent i = AccountManager.newChooseAccountIntent(null, null,
+                    new String[]{"com.google"}, null,
+                    null, null,
+                    null);
+
+            startActivityForResult(i, REQUEST_USERNAME_ID);
+        }
+    }
+
+    public void onActivityResult(int code, int res, Intent data) {
+
+        super.onActivityResult(code, res, data);
+
+        if(code == REQUEST_USERNAME_ID) {
+
+            if(Activity.RESULT_OK == res) {
+
+                preferredUsername = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+
+                SharedPreferences.Editor editor = pref.edit();
+                editor.putString("preferredUsername", preferredUsername);
+                editor.apply();
+            } else {
+
+                preferredUsername = android.os.Build.MODEL;
+            }
+
+        }
+    }
+
+    protected String getUsername(){ return preferredUsername; }
 
 }

@@ -151,7 +151,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+
         saverExecutor.shutdown();
     }
 
