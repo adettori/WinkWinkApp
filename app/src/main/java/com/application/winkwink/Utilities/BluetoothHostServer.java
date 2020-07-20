@@ -10,9 +10,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.application.winkwink.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.mlkit.vision.common.InputImage;
@@ -54,6 +56,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
     private WeakReference<Button> goButton;
     private WeakReference<ImageView> imgView;
+    private WeakReference<TextView> textView;
     private WeakReference<FaceSharer> faceSharer;
 
     private ExecutorService saverExecutor;
@@ -66,11 +69,15 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     byte[] lenImage;
     byte[] image;
 
-    public BluetoothHostServer(File dirFile, ImageView imgV, Button btn, FaceSharer faceS) {
+    String curUserName;
+
+    public BluetoothHostServer(File dirFile, ImageView imgV, Button btn, TextView text,
+                               FaceSharer faceS) {
 
         saveLoc = dirFile;
         goButton = new WeakReference<>(btn);
         imgView = new WeakReference<>(imgV);
+        textView = new WeakReference<>(text);
         faceSharer = new WeakReference<>(faceS);
         saverExecutor = Executors.newSingleThreadExecutor();
 
@@ -115,18 +122,20 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
                 saverExecutor.submit(new ImageSaver(bitmapBuffer, saveLoc));
 
-                ImageView view = imgView.get();
-
-                assert view != null;
-
                 Bitmap bmp = BitmapFactory.decodeByteArray(bitmapBuffer, 0,
                         bitmapBuffer.length);;
 
+                ImageView view = imgView.get();
+                assert view != null;
+                assert bmp != null;
+
                 //Load the image inside the ViewImage
-                BitmapLoader bml = new BitmapLoader(imgView.get(), bmp);
+                BitmapLoader bml = new BitmapLoader(view, bmp);
                 bml.run();
 
                 InputImage toDetect = InputImage.fromBitmap(bmp, imgRotation);
+
+                curUserName = username;
 
                 //Find the facial features of the image
                 faceDet.process(toDetect)
@@ -235,21 +244,38 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
         FaceSharer faceSh = faceSharer.get();
         Button btn = goButton.get();
+        TextView txt = textView.get();
         Face target = null;
 
-        if(faces.size() > 0)
-            target = faces.get(0);
-
         //TODO
-        // Notify the user that there is no face to imitate
+        // Quite ugly, needs refactoring
 
-        if(btn != null)
-            //TODO
-            // Refactor urgently!
-        {
+        if(txt != null) {
+
+            if(faces.size() == 0) {
+                txt.post(() -> {
+                    txt.setText(R.string.no_players);
+                });
+                return;
+            } else if(faces.size() > 1) {
+                txt.post(() -> {
+                    txt.setText(R.string.too_many_players);
+                });
+                return;
+            }
+        }
+
+        target = faces.get(0);
+
+        if(btn != null && txt != null) {
+
             Face finalTarget = target;
+            String challenger = "Challenger: " + curUserName;
+
             btn.post(() -> {
                     btn.setVisibility(View.VISIBLE);
+
+                    txt.setText(challenger);
 
                     if(faceSh != null && faces.size() > 0)
                         faceSh.setFace(finalTarget);

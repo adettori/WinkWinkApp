@@ -19,6 +19,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -83,12 +84,14 @@ public class LobbyFragment extends Fragment
 
         File saveFile = new File(activity.getExternalFilesDir(null), saveName);
 
+        TextView descText = view.findViewById(R.id.desc_text);
+
         faceView = view.findViewById(R.id.face_view);
 
         goButton = view.findViewById(R.id.go_button);
         goButton.setOnClickListener(this);
 
-        lbs = new BluetoothHostServer(saveFile, faceView, goButton, this);
+        lbs = new BluetoothHostServer(saveFile, faceView, goButton, descText,this);
 
         btSwitch = view.findViewById(R.id.bt_switch);
         btSwitch.setOnCheckedChangeListener(this);
