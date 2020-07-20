@@ -231,7 +231,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                 imageAnalyzer = new ImageAnalysis.Builder().build();
                 imageAnalyzer.setAnalyzer(cameraExecutor,
-                        new FacialFeaturesAnalyzer(faceToCompare, countDownTimer,
+                        new FacialFeaturesAnalyzer(faceToCompare, countDownTimer, 
                                 (AppCompatActivity) getActivity()));
 
                 imageCapture = new ImageCapture.Builder()

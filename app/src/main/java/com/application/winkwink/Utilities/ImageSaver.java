@@ -2,11 +2,9 @@ package com.application.winkwink.Utilities;
 
 /* Code adapted from Google's Camera2BasicFragment example */
 
-import android.graphics.Bitmap;
 import android.media.Image;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;

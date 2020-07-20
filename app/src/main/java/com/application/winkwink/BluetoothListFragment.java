@@ -1,8 +1,6 @@
 package com.application.winkwink;
 
 import android.Manifest;
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -32,8 +30,6 @@ import com.application.winkwink.Utilities.BluetoothGuestClient;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 
 public class BluetoothListFragment extends Fragment
@@ -191,7 +187,8 @@ public class BluetoothListFragment extends Fragment
 
             assert faceURI != null;
 
-            String username = ((MainActivity) getActivity()).getUsername();
+            String username = getActivity().getPreferences(Context.MODE_PRIVATE)
+                    .getString("preferredUsername", android.os.Build.MODEL);
 
             BluetoothGuestClient sendTask =
                     new BluetoothGuestClient(lastRefDev, username, faceRotation,

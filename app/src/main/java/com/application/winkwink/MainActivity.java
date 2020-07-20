@@ -21,7 +21,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -78,7 +77,4 @@ public class MainActivity extends AppCompatActivity {
             editor.apply();
         }
     }
-
-    protected String getUsername(){ return preferredUsername; }
-
 }
