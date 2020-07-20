@@ -231,7 +231,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                 imageAnalyzer = new ImageAnalysis.Builder().build();
                 imageAnalyzer.setAnalyzer(cameraExecutor,
-                        new FacialFeaturesAnalyzer(faceToCompare,
+                        new FacialFeaturesAnalyzer(faceToCompare, countDownTimer, 
                                 (AppCompatActivity) getActivity()));
 
                 imageCapture = new ImageCapture.Builder()
@@ -317,12 +317,14 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             OnSuccessListener<List<Face>>, OnFailureListener {
 
         private WeakReference<AppCompatActivity> activity;
+        private WeakReference<CustomCounter> counter;
 
         private FaceDetector faceDet;
         private ImageProxy curImage;
         private Boolean[] faceToCompareFeatures;
 
-        public FacialFeaturesAnalyzer(float[] probabilitiesArray, AppCompatActivity a) {
+        public FacialFeaturesAnalyzer(float[] probabilitiesArray, CustomCounter c,
+                                      AppCompatActivity a) {
 
             this();
 
@@ -331,6 +333,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             }
 
             activity = new WeakReference<>(a);
+            counter = new WeakReference<>(c);
         }
 
         public FacialFeaturesAnalyzer() {
@@ -388,13 +391,17 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                 Log.e(TAG, "Well done!");
 
+                CustomCounter c = counter.get();
+
+                if(c != null)
+                    c.cancel();
+
                 if(a != null) {
+                    Toast.makeText(a, R.string.well_done, Toast.LENGTH_SHORT).show();
 
                     a.getSupportFragmentManager().beginTransaction()
                             .replace(R.id.menu_container, MenuFragment.newInstance())
                             .commit();
-
-                    Toast.makeText(a, R.string.well_done, Toast.LENGTH_SHORT).show();
                 }
             } else
                 Log.e(TAG, "Booo!");
@@ -456,6 +463,11 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         public void run() {
 
             localTimer.start();
+        }
+
+        public void cancel() {
+
+            localTimer.cancel();
         }
     }
 }
