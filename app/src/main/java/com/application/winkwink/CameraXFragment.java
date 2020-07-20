@@ -34,6 +34,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -231,7 +232,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                 imageAnalyzer = new ImageAnalysis.Builder().build();
                 imageAnalyzer.setAnalyzer(cameraExecutor,
-                        new FacialFeaturesAnalyzer(faceToCompare, countDownTimer, 
+                        new FacialFeaturesAnalyzer(faceToCompare, countDownTimer,
                                 (AppCompatActivity) getActivity()));
 
                 imageCapture = new ImageCapture.Builder()
@@ -398,7 +399,9 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                 if(a != null) {
                     Toast.makeText(a, R.string.well_done, Toast.LENGTH_SHORT).show();
-
+                    
+                    a.getSupportFragmentManager()
+                            .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                     a.getSupportFragmentManager().beginTransaction()
                             .replace(R.id.menu_container, MenuFragment.newInstance())
                             .commit();
@@ -451,6 +454,8 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                     if(a != null) {
                         Toast.makeText(a, R.string.lost, Toast.LENGTH_SHORT).show();
+                        a.getSupportFragmentManager()
+                                .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                         a.getSupportFragmentManager().beginTransaction()
                                 .replace(R.id.menu_container, MenuFragment.newInstance())
                                 .commit();
