@@ -60,7 +60,6 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     private WeakReference<ImageView> imgView;
     private WeakReference<TextView> textView;
     private WeakReference<FaceSharer> faceSharer;
-    private WeakReference<Context> context;
 
     private ExecutorService saverExecutor;
 
@@ -75,14 +74,13 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     String curUserName;
 
     public BluetoothHostServer(File dirFile, ImageView imgV, Button btn, TextView text,
-                               FaceSharer faceS, Context cntx) {
+                               FaceSharer faceS) {
 
         saveLoc = dirFile;
         goButton = new WeakReference<>(btn);
         imgView = new WeakReference<>(imgV);
         textView = new WeakReference<>(text);
         faceSharer = new WeakReference<>(faceS);
-        context = new WeakReference<>(cntx);
 
         saverExecutor = Executors.newSingleThreadExecutor();
 
@@ -115,11 +113,6 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
                 //Receive the data via bluetooth
                 BluetoothSocket bs = bss.accept();
-
-                Context c = context.get();
-
-                if(c != null)
-                    Toast.makeText(c, R.string.receiving_data, Toast.LENGTH_SHORT).show();
 
                 BluetoothProtocolPayload protObj = handleConnection(bs);
                 bs.close();
