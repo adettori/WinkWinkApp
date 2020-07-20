@@ -12,6 +12,8 @@ import android.os.CountDownTimer;
 import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
+import android.view.OrientationEventListener;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -103,9 +105,32 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             faceToCompare = args.getFloatArray("facialFeaturesArray");
         }
 
+        //Used to set the correct orientation, needed because of c
+        OrientationEventListener orientationEventListener = new OrientationEventListener(getContext()) {
+            @Override
+            public void onOrientationChanged(int orientation) {
+                int rotation;
+
+                // Monitors orientation values to determine the target rotation value
+                if (orientation >= 45 && orientation < 135) {
+                    rotation = Surface.ROTATION_270;
+                } else if (orientation >= 135 && orientation < 225) {
+                    rotation = Surface.ROTATION_180;
+                } else if (orientation >= 225 && orientation < 315) {
+                    rotation = Surface.ROTATION_90;
+                } else {
+                    rotation = Surface.ROTATION_0;
+                }
+
+                if(imageCapture != null)
+                    imageCapture.setTargetRotation(rotation);
+            }
+        };
+
         cameraExecutor = Executors.newSingleThreadExecutor();
         counterExecutor = Executors.newSingleThreadExecutor();
 
+        orientationEventListener.enable();
         startCamera();
     }
 
@@ -260,7 +285,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         // Setup image capture listener which is triggered after photo has been taken
         imageCapture.takePicture(
                 outputOptions, ContextCompat.getMainExecutor(getContext()),
-                new ImageCapture.OnImageSavedCallback () {
+                new ImageCapture.OnImageSavedCallback() {
 
                     @Override
                     public void onError(@NonNull ImageCaptureException exc) {
