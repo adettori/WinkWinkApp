@@ -67,6 +67,8 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
     private PreviewView viewFinder;
     private TextView countdownView;
 
+    private ProcessCameraProvider cameraProvider;
+    private Preview preview;
     private ImageCapture imageCapture;
     private ImageAnalysis imageAnalyzer;
 
@@ -107,9 +109,25 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         startCamera();
     }
 
+    @Override
     public void onResume() {
 
         super.onResume();
+
+        if(cameraProvider == null)
+            startCamera();
+    }
+
+    @Override
+    public void onPause() {
+
+        super.onPause();
+
+        //Unbind the UseCases otherwise the app will crash
+        if(cameraProvider != null) {
+            cameraProvider.unbindAll();
+            cameraProvider = null;
+        }
     }
 
     @Override
@@ -168,14 +186,14 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 ProcessCameraProvider.getInstance(context);
 
         cameraProviderFuture.addListener(() -> {
-            ProcessCameraProvider cameraProvider = null;
+
             try {
                 cameraProvider = cameraProviderFuture.get();
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
             }
 
-            Preview preview = new Preview.Builder()
+            preview = new Preview.Builder()
                     .build();
             CameraSelector cameraSelector = new CameraSelector.Builder()
                     .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
@@ -187,7 +205,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 cameraProvider.unbindAll();
 
                 // Bind use cases to camera provider
-                Camera camera;
+                Camera camera = null;
 
                 if(ACTIVE_MODE == CAMERA_MODE_PHOTO) {
 
@@ -196,7 +214,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                             .build();
                     camera = cameraProvider.bindToLifecycle(getActivity(), cameraSelector,
                             preview, imageCapture);
-                } else {
+                } else if(ACTIVE_MODE == CAMERA_MODE_COMPARE) {
 
                     imageAnalyzer = new ImageAnalysis.Builder().build();
                     imageAnalyzer.setAnalyzer(cameraExecutor,
@@ -372,12 +390,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                     String result = String.format(template, millisUntilFinished);
 
-                    text.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            text.setText(result);
-                        }
-                    });
+                    text.post(() -> text.setText(result));
                 }
 
                 @Override
