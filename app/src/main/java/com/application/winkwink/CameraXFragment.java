@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -64,18 +65,19 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
     private int ACTIVE_MODE;
 
     private PreviewView viewFinder;
-    private ImageView viewReminder;
-    private TextView countdown;
+    private TextView countdownView;
 
     private ImageCapture imageCapture;
     private ImageAnalysis imageAnalyzer;
+
     private ExecutorService cameraExecutor;
+    private ExecutorService counterExecutor;
 
     // Left eye, right eye, smile probabilities
     private float[] faceToCompare;
     private Drawable imgReminder;
 
-    private CountDownTimer countDownTimer;
+    private CustomCounter countDownTimer;
 
     public CameraXFragment() {}
 
@@ -100,13 +102,14 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor();
+        counterExecutor = Executors.newSingleThreadExecutor();
+
         startCamera();
     }
 
     public void onResume() {
 
         super.onResume();
-        //countDownTimer.start()
     }
 
     @Override
@@ -120,9 +123,9 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
         viewFinder = view.findViewById(R.id.preview);
 
-        viewReminder = view.findViewById(R.id.view_reminder);
+        ImageView viewReminder = view.findViewById(R.id.view_reminder);
 
-        countdown = view.findViewById(R.id.countdown);
+        countdownView = view.findViewById(R.id.countdown);
 
         Button btn = view.findViewById(R.id.picture);
         btn.setOnClickListener(this);
@@ -134,7 +137,12 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             viewReminder.setImageDrawable(imgReminder);
             viewReminder.setVisibility(View.VISIBLE);
 
-            countdown.setVisibility(View.VISIBLE);
+            countdownView.setVisibility(View.VISIBLE);
+
+            countDownTimer = new CustomCounter(countdownView, getString(R.string.game_score),
+                    10000);
+
+            counterExecutor.submit(countDownTimer);
         }
 
     }
@@ -296,7 +304,10 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         @Override
         public void analyze(@NonNull ImageProxy image) {
 
-            InputImage toDetect = InputImage.fromMediaImage(image.getImage(),
+            Image tmp = image.getImage();
+
+            assert tmp != null;
+            InputImage toDetect = InputImage.fromMediaImage(tmp,
                     image.getImageInfo().getRotationDegrees());
 
             curImage = image;
@@ -346,6 +357,41 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             }
 
             return result;
+        }
+    }
+
+    private static class CustomCounter implements Runnable {
+
+        private CountDownTimer localTimer;
+
+        CustomCounter(TextView text, String template, long initialValue) {
+
+            localTimer = new CountDownTimer(initialValue, 1) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+
+                    String result = String.format(template, millisUntilFinished);
+
+                    text.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            text.setText(result);
+                        }
+                    });
+                }
+
+                @Override
+                public void onFinish() {
+
+                    this.cancel();
+                }
+            };
+        }
+
+        @Override
+        public void run() {
+
+            localTimer.start();
         }
     }
 }
