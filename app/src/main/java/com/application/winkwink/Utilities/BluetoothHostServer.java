@@ -56,7 +56,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     private WeakReference<Button> goButton;
     private WeakReference<ImageView> imgView;
     private WeakReference<TextView> textView;
-    private WeakReference<FaceSharer> faceSharer;
+    private WeakReference<LobbySharer> lobbySharer;
 
     private ExecutorService saverExecutor;
 
@@ -72,14 +72,14 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     String curUserName;
 
     public BluetoothHostServer(BluetoothServerSocket socket, File dirFile, ImageView imgV,
-                               Button btn, TextView text, FaceSharer faceS) {
+                               Button btn, TextView text, LobbySharer lobbyS) {
 
         bss = socket;
         saveLoc = dirFile;
         goButton = new WeakReference<>(btn);
         imgView = new WeakReference<>(imgV);
         textView = new WeakReference<>(text);
-        faceSharer = new WeakReference<>(faceS);
+        lobbySharer = new WeakReference<>(lobbyS);
 
         saverExecutor = Executors.newSingleThreadExecutor();
 
@@ -245,7 +245,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     @Override
     public void onSuccess(List<Face> faces) {
 
-        FaceSharer faceSh = faceSharer.get();
+        LobbySharer lobbyS = lobbySharer.get();
         Button btn = goButton.get();
         TextView txt = textView.get();
         Face target = null;
@@ -280,8 +280,10 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
                     txt.setText(challenger);
 
-                    if(faceSh != null && faces.size() > 0)
-                        faceSh.setFace(finalTarget);
+                    if(lobbyS != null && faces.size() > 0) {
+                        lobbyS.setFace(finalTarget);
+                        lobbyS.setChallengerUsername(curUserName);
+                    }
             });
         }
     }

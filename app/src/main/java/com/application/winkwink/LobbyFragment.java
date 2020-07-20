@@ -24,7 +24,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.application.winkwink.Utilities.BluetoothHostServer;
-import com.application.winkwink.Utilities.FaceSharer;
+import com.application.winkwink.Utilities.LobbySharer;
 import com.google.mlkit.vision.face.Face;
 
 import java.io.File;
@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class LobbyFragment extends Fragment
-        implements CompoundButton.OnCheckedChangeListener, View.OnClickListener, FaceSharer {
+        implements CompoundButton.OnCheckedChangeListener, View.OnClickListener, LobbySharer {
 
     private static final int REQUEST_DISCOVERABLE_ID = 30;
     private static final int REQUEST_CAMERA2_FRAGMENT_ID = 31;
@@ -259,13 +259,18 @@ public class LobbyFragment extends Fragment
     }
 
     @Override
-    public Face getFace(int id) {
-        return curFaceImageView;
+    public void setFace(Face face) {
+        curFaceImageView = face;
     }
 
     @Override
-    public void setFace(Face face) {
-        curFaceImageView = face;
+    public void setChallengerUsername(String name) {
+
+        Activity activity = getActivity();
+
+        assert activity != null;
+        activity.getPreferences(Context.MODE_PRIVATE).edit().
+                putString("GAME_RESULT_CHALLENGER", name).apply();
     }
 
     private static class BluetoothToggleReceiver extends BroadcastReceiver {
