@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
@@ -236,7 +237,8 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                     imageAnalyzer = new ImageAnalysis.Builder().build();
                     imageAnalyzer.setAnalyzer(cameraExecutor,
-                            new FacialFeaturesAnalyzer(faceToCompare, getContext()));
+                            new FacialFeaturesAnalyzer(faceToCompare,
+                                    (AppCompatActivity) getActivity()));
                 }
 
                 if(imageCapture == null) {
@@ -332,20 +334,20 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
     private static class FacialFeaturesAnalyzer implements ImageAnalysis.Analyzer,
             OnSuccessListener<List<Face>>, OnFailureListener {
 
-        private WeakReference<Context> context;
-        
+        private WeakReference<AppCompatActivity> activity;
+
         private FaceDetector faceDet;
         private ImageProxy curImage;
         private Boolean[] faceToCompareFeatures;
 
-        public FacialFeaturesAnalyzer(float[] probabilitiesArray, Context c) {
+        public FacialFeaturesAnalyzer(float[] probabilitiesArray, AppCompatActivity a) {
 
             this();
 
             if(probabilitiesArray != null)
                 faceToCompareFeatures = facialFeaturesSolver(probabilitiesArray);
 
-            context = new WeakReference<>(c);
+            activity = new WeakReference<>(a);
         }
 
         public FacialFeaturesAnalyzer() {
@@ -386,7 +388,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         @Override
         public void onSuccess(List<Face> faces) {
 
-            Context c = context.get();
+            AppCompatActivity a = activity.get();
 
             curImage.close();
 
@@ -403,8 +405,15 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             if(Arrays.equals(facialFeaturesSolver(curFaceFeatures), faceToCompareFeatures)) {
 
                 Log.e(TAG, "Well done!");
-                if(c != null)
-                    Toast.makeText(c, R.string.well_done, Toast.LENGTH_SHORT).show();
+
+                if(a != null) {
+
+                    a.getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.menu_container, MenuFragment.newInstance())
+                            .commit();
+
+                    Toast.makeText(a, R.string.well_done, Toast.LENGTH_SHORT).show();
+                }
             } else
                 Log.e(TAG, "Booo!");
         }
