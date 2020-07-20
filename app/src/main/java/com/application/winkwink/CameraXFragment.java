@@ -46,6 +46,7 @@ import com.google.mlkit.vision.face.FaceDetectorOptions;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
@@ -235,7 +236,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                     imageAnalyzer = new ImageAnalysis.Builder().build();
                     imageAnalyzer.setAnalyzer(cameraExecutor,
-                            new FacialFeaturesAnalyzer(faceToCompare));
+                            new FacialFeaturesAnalyzer(faceToCompare, getContext()));
                 }
 
                 if(imageCapture == null) {
@@ -331,16 +332,20 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
     private static class FacialFeaturesAnalyzer implements ImageAnalysis.Analyzer,
             OnSuccessListener<List<Face>>, OnFailureListener {
 
+        private WeakReference<Context> context;
+        
         private FaceDetector faceDet;
         private ImageProxy curImage;
         private Boolean[] faceToCompareFeatures;
 
-        public FacialFeaturesAnalyzer(float[] probabilitiesArray) {
+        public FacialFeaturesAnalyzer(float[] probabilitiesArray, Context c) {
 
             this();
 
             if(probabilitiesArray != null)
                 faceToCompareFeatures = facialFeaturesSolver(probabilitiesArray);
+
+            context = new WeakReference<>(c);
         }
 
         public FacialFeaturesAnalyzer() {
@@ -381,6 +386,8 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         @Override
         public void onSuccess(List<Face> faces) {
 
+            Context c = context.get();
+
             curImage.close();
 
             Log.d(TAG, "Found faces: " + faces.size());
@@ -393,9 +400,12 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             float[] curFaceFeatures = {curFace.getLeftEyeOpenProbability(),
                     curFace.getRightEyeOpenProbability(), curFace.getSmilingProbability()};
 
-            if(Arrays.equals(facialFeaturesSolver(curFaceFeatures), faceToCompareFeatures))
+            if(Arrays.equals(facialFeaturesSolver(curFaceFeatures), faceToCompareFeatures)) {
+
                 Log.e(TAG, "Well done!");
-            else
+                if(c != null)
+                    Toast.makeText(c, R.string.well_done, Toast.LENGTH_SHORT).show();
+            } else
                 Log.e(TAG, "Booo!");
         }
 

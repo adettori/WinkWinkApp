@@ -30,5 +30,6 @@
     <string name="no_players">No players found in the photo. Retry.</string>
     <string name="too_many_players">Too many players in the photo!</string>
     <string name="receiving_data">Receiving data…</string>
+    <string name="well_done">Well done!</string>
 
 </resources>
