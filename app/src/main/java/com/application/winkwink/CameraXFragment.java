@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.net.Uri;
@@ -375,6 +376,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         public void onSuccess(List<Face> faces) {
 
             AppCompatActivity a = activity.get();
+            Face curFace;
 
             curImage.close();
 
@@ -383,28 +385,45 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             if(faces.size() == 0)
                 return;
 
-            Face curFace = faces.get(0);
+            curFace = faces.get(0);
 
-            float[] curFaceFeatures = {curFace.getLeftEyeOpenProbability(),
-                    curFace.getRightEyeOpenProbability(), curFace.getSmilingProbability()};
+            float[] curFaceFeatures = {
+                    curFace.getLeftEyeOpenProbability(),
+                    curFace.getRightEyeOpenProbability(),
+                    curFace.getSmilingProbability()};
 
             if(Arrays.equals(facialFeaturesSolver(curFaceFeatures), faceToCompareFeatures)) {
 
                 Log.e(TAG, "Well done!");
 
-                CustomCounter c = counter.get();
-
-                if(c != null)
-                    c.cancel();
-
                 if(a != null) {
-                    Toast.makeText(a, R.string.well_done, Toast.LENGTH_SHORT).show();
 
-                    a.getSupportFragmentManager()
-                            .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                    a.getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.menu_container, MenuFragment.newInstance())
-                            .commit();
+                    long finalScore = -1;
+
+                    CustomCounter c = counter.get();
+
+                    if(c != null)
+                        finalScore = c.cancel();
+
+                    long finalScore1 = finalScore;
+                    a.runOnUiThread(() -> {
+                        Toast.makeText(a, R.string.well_done, Toast.LENGTH_SHORT).show();
+
+                        //Clear backstack
+                        a.getSupportFragmentManager()
+                                .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+                        SharedPreferences.Editor editor =
+                                a.getPreferences(Context.MODE_PRIVATE).edit();
+                        editor.putBoolean("GAME_RESULT_POSITIVE", true);
+                        editor.putBoolean("GAME_RESULT_REGISTERED", false);
+                        editor.putLong("GAME_RESULT_SCORE", finalScore1);
+                        editor.apply();
+
+                        a.getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.menu_container, MenuFragment.newInstance())
+                                .commit();
+                    });
                 }
             } else
                 Log.e(TAG, "Booo!");
@@ -415,7 +434,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             Boolean[] result = new Boolean[3];
             double threshold = 0.70;
 
-            for(int i=0; i<input.length;i++) {
+            for(int i=0; i<input.length; i++) {
 
                 result[i] = input[i] > threshold;
             }
@@ -430,6 +449,8 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
         private CountDownTimer localTimer;
 
+        private long lastTick;
+
         CustomCounter(TextView text, String template, long initialValue, AppCompatActivity a) {
 
             activity = new WeakReference<>(a);
@@ -438,11 +459,13 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 @Override
                 public void onTick(long millisUntilFinished) {
 
+                    lastTick = millisUntilFinished;
                     String result = String.format(template, millisUntilFinished);
 
                     text.post(() -> text.setText(result));
                 }
 
+                //Game over condition
                 @Override
                 public void onFinish() {
 
@@ -453,12 +476,26 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                     text.post(() -> text.setText(result));
 
                     if(a != null) {
-                        Toast.makeText(a, R.string.lost, Toast.LENGTH_SHORT).show();
-                        a.getSupportFragmentManager()
-                                .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                        a.getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.menu_container, MenuFragment.newInstance())
-                                .commit();
+
+                        a.runOnUiThread(() -> {
+
+                            Toast.makeText(a, R.string.lost, Toast.LENGTH_SHORT).show();
+
+                            //Clear backstack
+                            a.getSupportFragmentManager()
+                                    .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+                            SharedPreferences.Editor editor =
+                                    a.getPreferences(Context.MODE_PRIVATE).edit();
+                            editor.putBoolean("GAME_RESULT_POSITIVE", false);
+                            editor.putBoolean("GAME_RESULT_REGISTERED", false);
+                            editor.putLong("GAME_RESULT_SCORE", 0);
+                            editor.apply();
+
+                            a.getSupportFragmentManager().beginTransaction()
+                                    .replace(R.id.menu_container, MenuFragment.newInstance())
+                                    .commit();
+                        });
                     }
                 }
             };
@@ -470,9 +507,11 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             localTimer.start();
         }
 
-        public void cancel() {
+        public long cancel() {
 
             localTimer.cancel();
+
+            return lastTick;
         }
     }
 }
