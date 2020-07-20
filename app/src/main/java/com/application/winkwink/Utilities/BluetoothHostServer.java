@@ -153,6 +153,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
         }
 
         saverExecutor.shutdown();
+        Log.e("BluetoothServer", "Closed");
     }
 
     private BluetoothProtocolPayload handleConnection(BluetoothSocket bSocket) {

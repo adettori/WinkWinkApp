@@ -21,6 +21,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -67,14 +68,14 @@ public class MainActivity extends AppCompatActivity {
 
                 preferredUsername = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
 
-                SharedPreferences.Editor editor = pref.edit();
-                editor.putString("preferredUsername", preferredUsername);
-                editor.apply();
             } else {
 
                 preferredUsername = android.os.Build.MODEL;
             }
 
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putString("preferredUsername", preferredUsername);
+            editor.apply();
         }
     }
 
