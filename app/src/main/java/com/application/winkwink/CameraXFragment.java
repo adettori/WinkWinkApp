@@ -294,7 +294,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                         Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
                         Log.d(TAG, msg);
 
-                        int orientation = preview.getTargetRotation();
+                        int orientation = imageCapture.getTargetRotation();
 
                         Intent resultIntent = new Intent();
                         resultIntent.putExtra("guestFaceUri", savedUri);
@@ -399,7 +399,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                 if(a != null) {
                     Toast.makeText(a, R.string.well_done, Toast.LENGTH_SHORT).show();
-                    
+
                     a.getSupportFragmentManager()
                             .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                     a.getSupportFragmentManager().beginTransaction()
