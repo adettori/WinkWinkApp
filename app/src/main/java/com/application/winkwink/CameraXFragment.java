@@ -33,7 +33,6 @@ import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
-import androidx.exifinterface.media.ExifInterface;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -46,7 +45,6 @@ import com.google.mlkit.vision.face.FaceDetector;
 import com.google.mlkit.vision.face.FaceDetectorOptions;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -185,7 +183,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             countdownView.setVisibility(View.VISIBLE);
 
             countDownTimer = new CustomCounter(countdownView, getString(R.string.game_score),
-                    10000);
+                    10000, (AppCompatActivity) getActivity());
 
             counterExecutor.submit(countDownTimer);
         }
@@ -309,6 +307,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         });
     }
 
+    //Used by LobbyFragment
     public void setReminderDrawable(Drawable dr) {
 
         imgReminder = dr;
@@ -417,9 +416,13 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
     private static class CustomCounter implements Runnable {
 
+        private WeakReference<AppCompatActivity> activity;
+
         private CountDownTimer localTimer;
 
-        CustomCounter(TextView text, String template, long initialValue) {
+        CustomCounter(TextView text, String template, long initialValue, AppCompatActivity a) {
+
+            activity = new WeakReference<>(a);
 
             localTimer = new CountDownTimer(initialValue, 1) {
                 @Override
@@ -433,7 +436,18 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 @Override
                 public void onFinish() {
 
-                    this.cancel();
+                    AppCompatActivity a = activity.get();
+
+                    String result = String.format(template, 0);
+
+                    text.post(() -> text.setText(result));
+
+                    if(a != null) {
+                        Toast.makeText(a, R.string.lost, Toast.LENGTH_SHORT).show();
+                        a.getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.menu_container, MenuFragment.newInstance())
+                                .commit();
+                    }
                 }
             };
         }
