@@ -48,7 +48,6 @@ import com.google.mlkit.vision.face.FaceDetectorOptions;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -291,7 +290,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                     @Override
                     public void onImageSaved(@NonNull ImageCapture.OutputFileResults output) {
                         Uri savedUri = Uri.fromFile(photoFile);
-                        String msg = "Photo capture succeeded";
+                        String msg = getString(R.string.photo_capture_success);
                         Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
                         Log.d(TAG, msg);
 
@@ -416,7 +415,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                 long finalScore1 = finalScore;
                 a.runOnUiThread(() -> {
-                    String winFormat = "Well done! %d points";
+                    String winFormat = a.getString(R.string.win_format);
                     Toast.makeText(a,
                             String.format(Locale.ROOT, winFormat, finalScore1),
                             Toast.LENGTH_SHORT).show();

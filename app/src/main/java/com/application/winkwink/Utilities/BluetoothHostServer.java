@@ -275,17 +275,18 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
         target = faces.get(0);
 
-        String challenger = "Challenger: " + curUserName;
-
         btn.post(() -> {
-                btn.setVisibility(View.VISIBLE);
 
-                txt.setText(challenger);
+            String challengerFormat =
+                    btn.getContext().getString(R.string.challenger_format) + curUserName;
+            btn.setVisibility(View.VISIBLE);
 
-                if(lobbyS != null && faces.size() > 0) {
-                    lobbyS.setFace(target);
-                    lobbyS.setChallengerUsername(curUserName);
-                }
+            txt.setText(challengerFormat);
+
+            if(lobbyS != null && faces.size() > 0) {
+                lobbyS.setFace(target);
+                lobbyS.setChallengerUsername(curUserName);
+            }
         });
     }
 

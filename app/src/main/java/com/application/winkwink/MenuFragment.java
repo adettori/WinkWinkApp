@@ -33,7 +33,6 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
     private static final int REQUEST_ACCESS_COARSE_LOCATION_ID = 1;
 
     private RivalsRecycleAdapter mAdapter;
-    private SQLiteOpenHelper dbHelper;
 
     public MenuFragment() {}
 
@@ -52,7 +51,7 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
         MainActivity ma = (MainActivity) getActivity();
 
         assert ma != null;
-        dbHelper = ma.getDbHelper();
+        SQLiteOpenHelper dbHelper = ma.getDbHelper();
 
         SharedPreferences pref = ma.getPreferences(Context.MODE_PRIVATE);
 
@@ -161,12 +160,6 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
     }
 
     private static class RivalsDbUpdater implements Runnable {
-
-        private static final String insertCommand = "INSERT INTO " +
-                GameRivalsContract.RivalsEntry.TABLE_NAME +
-                "(" + GameRivalsContract.RivalsEntry.COLUMN_NAME_PLAYER_ID +
-                ", " + GameRivalsContract.RivalsEntry.COLUMN_NAME_PLAYER_SCORE +
-                ") VALUES (?,?)";
 
         private SQLiteOpenHelper dbHelper;
         private WeakReference<Activity> activityWeakReference;
@@ -279,8 +272,14 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
 
         // Replace the contents of a view (invoked by the layout manager)
         @Override
-        public void onBindViewHolder(RivalsRecycleAdapter.MyViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull RivalsRecycleAdapter.MyViewHolder holder,
+                                     int position) {
 
+            Activity a = activityWeakReference.get();
+
+            if(a == null)
+                throw new NullPointerException();
+            
             cursor.moveToPosition(position);
 
             String playerId = cursor.getString(cursor.getColumnIndexOrThrow(
@@ -288,8 +287,8 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
             int playerAvg = cursor.getInt(cursor.getColumnIndexOrThrow("avg"));
             int playerGames = cursor.getInt(cursor.getColumnIndexOrThrow("cnt"));
 
-            String gamesFormat = "Games played: %d";
-            String avgFormat = "Average score: %d";
+            String gamesFormat = a.getString(R.string.games_played_format);
+            String avgFormat = a.getString(R.string.average_score_format);
 
             holder.idView.setText(playerId);
             holder.matchesView.setText(String.format(Locale.ROOT,gamesFormat, playerGames));

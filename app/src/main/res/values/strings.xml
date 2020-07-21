@@ -43,5 +43,10 @@
     <string name="PREFERENCES_GAME_RESULT_CHALLENGER">gameResultChallenger</string>
     <string name="PREFERENCES_GAME_RESULT_REGISTERED">gameResultRegistered</string>
     <string name="PREFERENCES_GAME_RESULT_SCORE">gameResultScore</string>
+    <string name="challenger_format">\"Challenger: \"</string>
+    <string name="photo_capture_success">Photo capture succeeded</string>
+    <string name="win_format">Well done! %d points</string>
+    <string name="games_played_format">Games played: %d</string>
+    <string name="average_score_format">Average score: %d</string>
 
 </resources>
