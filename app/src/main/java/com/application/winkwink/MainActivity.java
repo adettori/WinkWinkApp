@@ -43,7 +43,8 @@ public class MainActivity extends AppCompatActivity {
 
         pref = getPreferences(MODE_PRIVATE);
 
-        preferredUsername = pref.getString("preferredUsername", null);
+        preferredUsername = pref.getString(getString(R.string.PREFERENCES_PREFERRED_USERNAME),
+                null);
 
         dbHelper = new GameRivalsDbHelper(this);
     }
@@ -54,10 +55,10 @@ public class MainActivity extends AppCompatActivity {
 
         if(preferredUsername == null) {
 
-            Intent i = AccountManager.newChooseAccountIntent(null, null,
-                    new String[]{"com.google"}, null,
+            Intent i = AccountManager.newChooseAccountIntent(null,
+                    null, new String[]{"com.google"},
                     null, null,
-                    null);
+                    null, null);
 
             startActivityForResult(i, REQUEST_USERNAME_ID);
         }
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             SharedPreferences.Editor editor = pref.edit();
-            editor.putString("preferredUsername", preferredUsername);
+            editor.putString(getString(R.string.PREFERENCES_PREFERRED_USERNAME), preferredUsername);
             editor.apply();
         }
     }
