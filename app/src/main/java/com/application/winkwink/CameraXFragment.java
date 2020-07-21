@@ -63,14 +63,14 @@ import java.util.concurrent.Executors;
 public class CameraXFragment extends Fragment implements View.OnClickListener {
 
     public final static String TAG = "CameraXTest";
-    private static final String saveName = "LastPhoto.jpeg";
     public final static int CAMERA_MODE_COMPARE = 1;
     public final static int CAMERA_MODE_PHOTO = 2;
+
+    private static final String saveName = "LastPhoto.jpeg";
 
     private int ACTIVE_MODE;
 
     private PreviewView viewFinder;
-    private TextView countdownView;
 
     private ProcessCameraProvider cameraProvider;
     private Preview preview = null;
@@ -98,14 +98,14 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
         if(args != null) {
 
-            int mode = args.getInt("cameraXMode");
+            int mode = args.getInt(getString(R.string.BUNDLE_CAMERA_MODE));
 
             if(mode == CAMERA_MODE_COMPARE || mode == CAMERA_MODE_PHOTO)
                 ACTIVE_MODE = mode;
             else
                 ACTIVE_MODE = CAMERA_MODE_PHOTO;
 
-            faceToCompare = args.getFloatArray("facialFeaturesArray");
+            faceToCompare = args.getFloatArray(getString(R.string.BUNDLE_FACIAL_FEATURES_ARRAY));
         }
 
         //Used to set the correct orientation, needed because of c
@@ -171,7 +171,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
         ImageView viewReminder = view.findViewById(R.id.view_reminder);
 
-        countdownView = view.findViewById(R.id.countdown);
+        TextView countdownView = view.findViewById(R.id.countdown);
 
         Button btn = view.findViewById(R.id.picture);
         btn.setOnClickListener(this);
@@ -258,7 +258,7 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                 preview.setSurfaceProvider(
                         viewFinder.createSurfaceProvider(camera.getCameraInfo()));
             } catch(Exception exc) {
-                Log.e("", "Use case binding failed", exc);
+                Log.e(TAG, "Use case binding failed", exc);
             }
         }, ContextCompat.getMainExecutor(context));
     }
@@ -298,10 +298,16 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
                         int orientation = imageCapture.getTargetRotation();
 
                         Intent resultIntent = new Intent();
-                        resultIntent.putExtra("guestFaceUri", savedUri);
-                        resultIntent.putExtra("guestFaceRotation", orientation);
+                        resultIntent.putExtra(getString(R.string.BUNDLE_GUEST_FACE_URI), savedUri);
+                        resultIntent.putExtra(getString(R.string.BUNDLE_GUEST_FACE_ROTATION),
+                                orientation);
 
-                        getTargetFragment().onActivityResult(getTargetRequestCode(),
+                        Fragment f = getTargetFragment();
+
+                        if(f == null)
+                            throw new NullPointerException();
+
+                        f.onActivityResult(getTargetRequestCode(),
                                 Activity.RESULT_OK, resultIntent);
 
                         getParentFragmentManager().popBackStack();
@@ -352,10 +358,10 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
         @Override
         public void analyze(@NonNull ImageProxy image) {
 
-            Image tmp = image.getImage();
+            Image tmpImg = image.getImage();
 
-            assert tmp != null;
-            InputImage toDetect = InputImage.fromMediaImage(tmp,
+            assert tmpImg != null;
+            InputImage toDetect = InputImage.fromMediaImage(tmpImg,
                     image.getImageInfo().getRotationDegrees());
 
             curImage = image;
@@ -378,6 +384,9 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
             AppCompatActivity a = activity.get();
             Face curFace;
 
+            if(a == null)
+                throw new NullPointerException();
+
             curImage.close();
 
             Log.d(TAG, "Found faces: " + faces.size());
@@ -396,38 +405,37 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                 Log.e(TAG, "Well done!");
 
-                if(a != null) {
+                long finalScore;
 
-                    long finalScore = -1;
+                CustomCounter c = counter.get();
 
-                    CustomCounter c = counter.get();
+                if(c == null)
+                    throw new NullPointerException();
 
-                    if(c != null)
-                        finalScore = c.cancel();
+                finalScore = c.cancel();
 
-                    long finalScore1 = finalScore;
-                    a.runOnUiThread(() -> {
-                        String winFormat = "Well done! %d points";
-                        Toast.makeText(a,
-                                String.format(Locale.ROOT, winFormat, finalScore1),
-                                Toast.LENGTH_SHORT).show();
-                        SharedPreferences.Editor editor =
-                                a.getPreferences(Context.MODE_PRIVATE).edit();
+                long finalScore1 = finalScore;
+                a.runOnUiThread(() -> {
+                    String winFormat = "Well done! %d points";
+                    Toast.makeText(a,
+                            String.format(Locale.ROOT, winFormat, finalScore1),
+                            Toast.LENGTH_SHORT).show();
+                    SharedPreferences.Editor editor =
+                            a.getPreferences(Context.MODE_PRIVATE).edit();
 
-                        //Clear backstack
-                        a.getSupportFragmentManager()
-                                .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                    //Clear backstack
+                    a.getSupportFragmentManager()
+                            .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
-                        editor.putBoolean("GAME_RESULT_POSITIVE", true);
-                        editor.putBoolean("GAME_RESULT_REGISTERED", false);
-                        editor.putLong("GAME_RESULT_SCORE", finalScore1);
-                        editor.apply();
+                    editor.putBoolean(a.getString(R.string.PREFERENCES_GAME_RESULT_REGISTERED), false);
+                    editor.putLong(a.getString(R.string.PREFERENCES_GAME_RESULT_SCORE),
+                            finalScore1);
+                    editor.apply();
 
-                        a.getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.menu_container, MenuFragment.newInstance())
-                                .commit();
-                    });
-                }
+                    a.getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.menu_container, MenuFragment.newInstance())
+                            .commit();
+                });
             } else
                 Log.e(TAG, "Booo!");
         }
@@ -478,27 +486,27 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                     text.post(() -> text.setText(result));
 
-                    if(a != null) {
+                    if(a == null)
+                        throw new NullPointerException();
 
-                        a.runOnUiThread(() -> {
+                    a.runOnUiThread(() -> {
 
-                            Toast.makeText(a, R.string.lost, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(a, R.string.lost, Toast.LENGTH_SHORT).show();
 
-                            //Clear backstack
-                            a.getSupportFragmentManager()
-                                    .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                        //Clear backstack
+                        a.getSupportFragmentManager()
+                                .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
-                            SharedPreferences.Editor editor =
-                                    a.getPreferences(Context.MODE_PRIVATE).edit();
-                            editor.putBoolean("GAME_RESULT_REGISTERED", false);
-                            editor.putLong("GAME_RESULT_SCORE", 0);
-                            editor.apply();
+                        SharedPreferences.Editor editor =
+                                a.getPreferences(Context.MODE_PRIVATE).edit();
+                        editor.putBoolean(a.getString(R.string.PREFERENCES_GAME_RESULT_REGISTERED), false);
+                        editor.putLong(a.getString(R.string.PREFERENCES_GAME_RESULT_SCORE), 0);
+                        editor.apply();
 
-                            a.getSupportFragmentManager().beginTransaction()
-                                    .replace(R.id.menu_container, MenuFragment.newInstance())
-                                    .commit();
-                        });
-                    }
+                        a.getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.menu_container, MenuFragment.newInstance())
+                                .commit();
+                    });
                 }
             };
         }

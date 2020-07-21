@@ -56,9 +56,12 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
 
         SharedPreferences pref = ma.getPreferences(Context.MODE_PRIVATE);
 
-        boolean registered = pref.getBoolean("GAME_RESULT_REGISTERED", true);
-        String userId = pref.getString("GAME_RESULT_CHALLENGER", null);
-        long userScore = pref.getLong("GAME_RESULT_SCORE", 0);
+        boolean registered = pref.getBoolean(getString(R.string.PREFERENCES_GAME_RESULT_REGISTERED),
+                true);
+        String userId = pref.getString(getString(R.string.PREFERENCES_GAME_RESULT_CHALLENGER),
+                null);
+        long userScore = pref.getLong(getString(R.string.PREFERENCES_GAME_RESULT_SCORE),
+                0);
 
         RivalsDbUpdater task;
 
@@ -70,7 +73,7 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
         Thread t = new Thread(task);
         t.start();
 
-        pref.edit().putBoolean("GAME_RESULT_REGISTERED", true).apply();
+        pref.edit().putBoolean(getString(R.string.PREFERENCES_GAME_RESULT_REGISTERED), true).apply();
 
     }
 
@@ -212,8 +215,10 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
 
             Activity activity = activityWeakReference.get();
 
-            if(activity != null)
-                activity.runOnUiThread(() -> rivalsRecycleAdapter.setCursor(cursor));
+            if(activity == null)
+                throw new NullPointerException();
+
+            activity.runOnUiThread(() -> rivalsRecycleAdapter.setCursor(cursor));
         }
     }
 
@@ -258,9 +263,12 @@ public class MenuFragment extends Fragment implements View.OnClickListener {
         @NonNull
         @Override
         public RivalsRecycleAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent,
-                                                                                             int viewType) {
+                                                                    int viewType) {
 
             Activity a = activityWeakReference.get();
+
+            if(a == null)
+                throw new NullPointerException();
 
             // create a new view
             View v = a.getLayoutInflater()

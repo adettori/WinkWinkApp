@@ -1,4 +1,5 @@
 <resources>
+
     <string name="app_name">WinkWink</string>
     <string name="title_activity_main">WinkWink</string>
 
@@ -32,5 +33,15 @@
     <string name="receiving_data">Receiving data…</string>
     <string name="well_done">Well done!</string>
     <string name="lost">You lost!</string>
+
+    <string name="BUNDLE_CAMERA_MODE">cameraXMode</string>
+    <string name="BUNDLE_FACIAL_FEATURES_ARRAY">facialFeaturesArray</string>
+    <string name="BUNDLE_TARGET_DEVICE">targetDevice</string>
+    <string name="BUNDLE_GUEST_FACE_URI">guestFaceUri</string>
+    <string name="BUNDLE_GUEST_FACE_ROTATION">guestFaceRotation</string>
+    <string name="PREFERENCES_PREFERRED_USERNAME">preferredUsername</string>
+    <string name="PREFERENCES_GAME_RESULT_CHALLENGER">preferredUsername</string>
+    <string name="PREFERENCES_GAME_RESULT_REGISTERED">gameResultRegistered</string>
+    <string name="PREFERENCES_GAME_RESULT_SCORE">gameResultScore</string>
 
 </resources>

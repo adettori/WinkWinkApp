@@ -181,13 +181,15 @@ public class BluetoothListFragment extends Fragment
 
             assert lastRefDev != null;
 
-            Uri faceURI = data.getParcelableExtra("guestFaceUri");
-            int faceRotation = data.getIntExtra("guestFaceRotation", Surface.ROTATION_0);
+            Uri faceURI = data.getParcelableExtra(getString(R.string.BUNDLE_GUEST_FACE_URI));
+            int faceRotation = data.getIntExtra(getString(R.string.BUNDLE_GUEST_FACE_ROTATION),
+                    Surface.ROTATION_0);
 
             assert faceURI != null;
 
             String username = getActivity().getPreferences(Context.MODE_PRIVATE)
-                    .getString("preferredUsername", android.os.Build.MODEL);
+                    .getString(getString(R.string.PREFERENCES_PREFERRED_USERNAME),
+                            android.os.Build.MODEL);
 
             BluetoothGuestClient sendTask =
                     new BluetoothGuestClient(lastRefDev, username, faceRotation,
@@ -254,8 +256,8 @@ public class BluetoothListFragment extends Fragment
 
         // Deprecated... but the alternative is still in alpha... great!
         cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
-        args.putParcelable("targetDevice", lastRefDev);
-        args.putInt("cameraXMode", CameraXFragment.CAMERA_MODE_PHOTO);
+        args.putParcelable(getString(R.string.BUNDLE_TARGET_DEVICE), lastRefDev);
+        args.putInt(getString(R.string.BUNDLE_CAMERA_MODE), CameraXFragment.CAMERA_MODE_PHOTO);
         cameraFragment.setArguments(args);
 
         getParentFragmentManager().beginTransaction()
@@ -315,6 +317,9 @@ public class BluetoothListFragment extends Fragment
                                                                        int viewType) {
 
             Activity a = activityWeakReference.get();
+
+            if(a == null)
+                throw new NullPointerException();
 
             // create a new view
             View v = a.getLayoutInflater()

@@ -246,8 +246,8 @@ public class LobbyFragment extends Fragment
 
         // Deprecated... but the alternative is still in alpha... great!
         cameraFragment.setTargetFragment(this, REQUEST_CAMERA2_FRAGMENT_ID);
-        args.putInt("cameraXMode", CameraXFragment.CAMERA_MODE_COMPARE);
-        args.putFloatArray("facialFeaturesArray", featuresArray);
+        args.putInt(getString(R.string.BUNDLE_CAMERA_MODE), CameraXFragment.CAMERA_MODE_COMPARE);
+        args.putFloatArray(getString(R.string.BUNDLE_FACIAL_FEATURES_ARRAY), featuresArray);
         cameraFragment.setArguments(args);
 
         //TODO
@@ -272,12 +272,12 @@ public class LobbyFragment extends Fragment
 
         assert activity != null;
         activity.getPreferences(Context.MODE_PRIVATE).edit().
-                putString("GAME_RESULT_CHALLENGER", name).apply();
+                putString(getString(R.string.PREFERENCES_GAME_RESULT_CHALLENGER), name).apply();
     }
 
     private static class BluetoothToggleReceiver extends BroadcastReceiver {
 
-        Switch bluetoothSwitch;
+        private Switch bluetoothSwitch;
 
         public BluetoothToggleReceiver(Switch switchButton) {
             super();
