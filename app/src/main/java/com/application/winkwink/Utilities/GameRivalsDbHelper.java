@@ -3,7 +3,6 @@ package com.application.winkwink.Utilities;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.provider.BaseColumns;
 
 /* Code adapted from https://developer.android.com/training/data-storage/sqlite */
 
@@ -36,18 +35,5 @@ public class GameRivalsDbHelper extends SQLiteOpenHelper {
 
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         onUpgrade(db, oldVersion, newVersion);
-    }
-
-    public static final class GameRivalsContract {
-
-        private GameRivalsContract() {
-        }
-
-        /* Inner class that defines the table contents */
-        public static class RivalsEntry implements BaseColumns {
-            public static final String TABLE_NAME = "rivals";
-            public static final String COLUMN_NAME_PLAYER_ID = "identifier";
-            public static final String COLUMN_NAME_PLAYER_SCORE = "score";
-        }
     }
 }

@@ -20,12 +20,13 @@ import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.io.File;
+import com.application.winkwink.Utilities.GameRivalsDbHelper;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String preferredUsername;
     private SharedPreferences pref;
-    private SQLiteDatabase db;
+    private SQLiteOpenHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
         preferredUsername = pref.getString("preferredUsername", null);
 
-        db = SQLiteDatabase.openOrCreateDatabase(new File(getFilesDir(), "main.db"),
-                null);
+        dbHelper = new GameRivalsDbHelper(this);
     }
 
     @Override
@@ -62,6 +62,13 @@ public class MainActivity extends AppCompatActivity {
 
             startActivityForResult(i, REQUEST_USERNAME_ID);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+
+        dbHelper.close();
+        super.onDestroy();
     }
 
     public void onActivityResult(int code, int res, Intent data) {
@@ -84,4 +91,6 @@ public class MainActivity extends AppCompatActivity {
             editor.apply();
         }
     }
+
+    public SQLiteOpenHelper getDbHelper() { return dbHelper; }
 }
