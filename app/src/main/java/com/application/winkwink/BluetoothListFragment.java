@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.application.winkwink.Utilities.BluetoothGuestClient;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 
@@ -90,7 +91,7 @@ public class BluetoothListFragment extends Fragment
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        mAdapter = new BluetoothRecycleAdapter(adapterDataset, this);
+        mAdapter = new BluetoothRecycleAdapter(adapterDataset, this, getActivity());
         recyclerView.setAdapter(mAdapter);
 
         discoverButton = view.findViewById(R.id.discover_button);
@@ -277,13 +278,15 @@ public class BluetoothListFragment extends Fragment
 
 
 
-    private class BluetoothRecycleAdapter
+    private static class BluetoothRecycleAdapter
             extends RecyclerView.Adapter<BluetoothRecycleAdapter.MyViewHolder> {
 
         private ArrayList<BluetoothDevice> mDataset;
         private View.OnClickListener externalListener;
 
-        public class MyViewHolder extends RecyclerView.ViewHolder {
+        private WeakReference<Activity> activityWeakReference;
+
+        public static class MyViewHolder extends RecyclerView.ViewHolder {
 
             private CardView cv;
             private TextView bluetoothName;
@@ -303,9 +306,10 @@ public class BluetoothListFragment extends Fragment
         }
 
         public BluetoothRecycleAdapter(ArrayList<BluetoothDevice> fragmentDataSet,
-                                       View.OnClickListener listener) {
+                                       View.OnClickListener listener, Activity a) {
             mDataset = fragmentDataSet;
             externalListener = listener;
+            activityWeakReference = new WeakReference<>(a);
         }
 
         // Create new views (invoked by the layout manager)
@@ -313,8 +317,11 @@ public class BluetoothListFragment extends Fragment
         @Override
         public BluetoothRecycleAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent,
                                                                        int viewType) {
+
+            Activity a = activityWeakReference.get();
+
             // create a new view
-            View v = getLayoutInflater()
+            View v = a.getLayoutInflater()
                     .inflate(R.layout.card_view_1_item, parent, false);
 
             return new MyViewHolder(v);
