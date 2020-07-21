@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 
 /**
  * Protocol:
@@ -78,8 +77,6 @@ public class BluetoothGuestClient implements Runnable {
 
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             Bitmap data = retrieveBitmap(dataFile);
-
-            assert data != null;
 
             data.compress(Bitmap.CompressFormat.PNG, 100, stream);
 

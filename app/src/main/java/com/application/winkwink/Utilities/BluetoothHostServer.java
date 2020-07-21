@@ -49,6 +49,8 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     public static final String myName = "it.application.winkwink bluetoothServer";
     public static final UUID myId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
+    private static final String TAG = "BluetoothHostServer";
+
     private static final int PROTOCOL_USER_LEN = 4;
     private static final int PROTOCOL_IMAGE_ROT = 4;
     private static final int PROTOCOL_IMAGE_LEN = 4;
@@ -93,14 +95,17 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
         BluetoothAdapter bta = BluetoothAdapter.getDefaultAdapter();
 
+        //Face detection
         FaceDetectorOptions faceOpt = new FaceDetectorOptions.Builder()
                 .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
                 .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
                 .build();
         FaceDetector faceDet = FaceDetection.getClient(faceOpt);
 
-        if(bta == null)
+        if(bta == null) {
+            Log.e(TAG, "No bluetooth adapter found");
             return;
+        }
 
         try {
 
@@ -115,8 +120,10 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
                 BluetoothProtocolPayload protObj = handleConnection(bs);
                 bs.close();
 
-                if(protObj == null)
+                if(protObj == null) {
+                    Log.e(TAG, "The bluetooth transfer failed.");
                     continue;
+                }
 
                 imgRotation = protObj.getImgRot();
                 username = protObj.getUsername();
@@ -150,7 +157,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
         }
 
         saverExecutor.shutdown();
-        Log.e("BluetoothServer", "Closed");
+        Log.e(TAG, "Shutdown");
     }
 
     private BluetoothProtocolPayload handleConnection(BluetoothSocket bSocket) {
@@ -201,7 +208,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
                     new String(userName, StandardCharsets.UTF_8), image);
 
         } catch (IOException e) {
-            Log.e("Size: ", "" + totPayload);
+            Log.e(TAG, "Size payload: " + totPayload);
             e.printStackTrace();
         }
 
@@ -220,7 +227,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
             the data anyway */
         try {
 
-            Log.e("BluetoothServer", "Total: "+buffer.array().length);
+            Log.e(TAG, "Total bytes to receive: " + buffer.array().length);
 
             while ((numBytes = is.read(tmpBuffer)) != -1) {
 
@@ -228,10 +235,10 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
                 buffer.put(tmpBuffer, 0, numBytes);
             }
 
-            Log.e("BluetoothServer", "Received: " + totBytes);
+            Log.e(TAG, "Total bytes received: " + totBytes);
 
         } catch (IOException e) {
-            Log.e("BluetoothServer", "Received: " + totBytes);
+            Log.e(TAG, "Total bytes received: " + totBytes);
             e.printStackTrace();
         }
     }
@@ -248,7 +255,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
         LobbySharer lobbyS = lobbySharer.get();
         Button btn = goButton.get();
         TextView txt = textView.get();
-        Face target = null;
+        Face target;
 
         //TODO
         // Quite ugly, needs refactoring
@@ -256,14 +263,10 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
         if(txt != null) {
 
             if(faces.size() == 0) {
-                txt.post(() -> {
-                    txt.setText(R.string.no_players);
-                });
+                txt.post(() -> txt.setText(R.string.no_players));
                 return;
             } else if(faces.size() > 1) {
-                txt.post(() -> {
-                    txt.setText(R.string.too_many_players);
-                });
+                txt.post(() -> txt.setText(R.string.too_many_players));
                 return;
             }
         }
@@ -272,7 +275,6 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
 
         if(btn != null && txt != null) {
 
-            Face finalTarget = target;
             String challenger = "Challenger: " + curUserName;
 
             btn.post(() -> {
@@ -281,7 +283,7 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
                     txt.setText(challenger);
 
                     if(lobbyS != null && faces.size() > 0) {
-                        lobbyS.setFace(finalTarget);
+                        lobbyS.setFace(target);
                         lobbyS.setChallengerUsername(curUserName);
                     }
             });

@@ -41,6 +41,9 @@ public class BitmapLoader implements Runnable {
         ImageView tmpImgV = imgView.get();
         Bitmap result = null;
 
+        if(tmpImgV == null)
+            throw new NullPointerException();
+
         try {
             if(saveLoc != null) {
                 FileInputStream is = new FileInputStream(saveLoc);
@@ -54,10 +57,8 @@ public class BitmapLoader implements Runnable {
                 result = bitmap;
             }
 
-            if(tmpImgV != null) {
-                Bitmap finalResult = result;
-                tmpImgV.post(() -> tmpImgV.setImageBitmap(finalResult));
-            }
+            Bitmap finalResult = result;
+            tmpImgV.post(() -> tmpImgV.setImageBitmap(finalResult));
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();

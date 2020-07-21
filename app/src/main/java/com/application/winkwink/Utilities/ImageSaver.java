@@ -30,7 +30,9 @@ public class ImageSaver implements Runnable {
 
     @Override
     public void run() {
+
         FileOutputStream output = null;
+
         try {
             output = new FileOutputStream(destFile);
             output.write(imageBuffer);
