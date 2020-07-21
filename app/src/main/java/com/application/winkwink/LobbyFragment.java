@@ -85,7 +85,7 @@ public class LobbyFragment extends Fragment
 
         assert activity != null;
 
-        saveFile = new File(activity.getExternalFilesDir(null), saveName);
+        saveFile = new File(activity.getFilesDir(), saveName);
 
         descText = view.findViewById(R.id.desc_text);
 
@@ -137,8 +137,10 @@ public class LobbyFragment extends Fragment
 
         assert activity != null;
         activity.unregisterReceiver(br);
+
         try {
-            bss.close();
+            if(bss != null)
+                bss.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

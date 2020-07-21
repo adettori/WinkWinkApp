@@ -63,6 +63,7 @@ import java.util.concurrent.Executors;
 public class CameraXFragment extends Fragment implements View.OnClickListener {
 
     public final static String TAG = "CameraXTest";
+    private static final String saveName = "LastPhoto.jpeg";
     public final static int CAMERA_MODE_COMPARE = 1;
     public final static int CAMERA_MODE_PHOTO = 2;
 
@@ -270,9 +271,8 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
         // Create timestamped output file to hold the image
         File photoFile = new File(
-                context.getExternalFilesDir(null),
-                new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.ITALY
-                ).format(System.currentTimeMillis()) + ".jpg");
+                context.getFilesDir(),
+                saveName);
 
         // Create output options object which contains file + metadata
         ImageCapture.OutputFileOptions outputOptions =
