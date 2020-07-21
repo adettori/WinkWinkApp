@@ -41,9 +41,7 @@ public class BluetoothListFragment extends Fragment
     private static final int REQUEST_CAMERA2_FRAGMENT_ID = 12;
     private static final int REQUEST_ACCESS_CAMERA_ID = 13;
 
-    private RecyclerView recyclerView;
     private BluetoothRecycleAdapter mAdapter;
-    private RecyclerView.LayoutManager layoutManager;
 
     private BluetoothAdapter bta;
     private BluetoothDiscoveryReceiver bdr;
@@ -84,11 +82,11 @@ public class BluetoothListFragment extends Fragment
 
         bta = BluetoothAdapter.getDefaultAdapter();
 
-        recyclerView = view.findViewById(R.id.recycler_view_1);
+        RecyclerView recyclerView = view.findViewById(R.id.recycler_view_1);
 
         recyclerView.setHasFixedSize(true);
 
-        layoutManager = new LinearLayoutManager(getContext());
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
         mAdapter = new BluetoothRecycleAdapter(adapterDataset, this, getActivity());
@@ -275,8 +273,6 @@ public class BluetoothListFragment extends Fragment
             discoverButton.setEnabled(false);
         }
     }
-
-
 
     private static class BluetoothRecycleAdapter
             extends RecyclerView.Adapter<BluetoothRecycleAdapter.MyViewHolder> {

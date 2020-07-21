@@ -487,7 +487,6 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                             SharedPreferences.Editor editor =
                                     a.getPreferences(Context.MODE_PRIVATE).edit();
-                            editor.putBoolean("GAME_RESULT_POSITIVE", false);
                             editor.putBoolean("GAME_RESULT_REGISTERED", false);
                             editor.putLong("GAME_RESULT_SCORE", 0);
                             editor.apply();
