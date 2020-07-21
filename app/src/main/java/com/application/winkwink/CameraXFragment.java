@@ -407,14 +407,17 @@ public class CameraXFragment extends Fragment implements View.OnClickListener {
 
                     long finalScore1 = finalScore;
                     a.runOnUiThread(() -> {
-                        Toast.makeText(a, R.string.well_done, Toast.LENGTH_SHORT).show();
+                        String winFormat = "Well done! %d points";
+                        Toast.makeText(a,
+                                String.format(Locale.ROOT, winFormat, finalScore1),
+                                Toast.LENGTH_SHORT).show();
+                        SharedPreferences.Editor editor =
+                                a.getPreferences(Context.MODE_PRIVATE).edit();
 
                         //Clear backstack
                         a.getSupportFragmentManager()
                                 .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
-                        SharedPreferences.Editor editor =
-                                a.getPreferences(Context.MODE_PRIVATE).edit();
                         editor.putBoolean("GAME_RESULT_POSITIVE", true);
                         editor.putBoolean("GAME_RESULT_REGISTERED", false);
                         editor.putLong("GAME_RESULT_SCORE", finalScore1);
