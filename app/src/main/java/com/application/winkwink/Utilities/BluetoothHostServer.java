@@ -132,11 +132,12 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
                 saverExecutor.submit(new ImageSaver(bitmapBuffer, saveLoc));
 
                 Bitmap bmp = BitmapFactory.decodeByteArray(bitmapBuffer, 0,
-                        bitmapBuffer.length);;
+                        bitmapBuffer.length);
 
                 ImageView view = imgView.get();
-                assert view != null;
-                assert bmp != null;
+
+                if(view == null || bmp == null)
+                    throw new NullPointerException();
 
                 InputImage toDetect = InputImage.fromBitmap(bmp, imgRotation);
 
@@ -252,42 +253,40 @@ public class BluetoothHostServer implements Runnable, OnSuccessListener<List<Fac
     @Override
     public void onSuccess(List<Face> faces) {
 
+        Face target;
+
         LobbySharer lobbyS = lobbySharer.get();
         Button btn = goButton.get();
         TextView txt = textView.get();
-        Face target;
+
+        if(lobbyS == null || btn == null || txt == null)
+            throw new NullPointerException();
 
         //TODO
         // Quite ugly, needs refactoring
 
-        if(txt != null) {
-
-            if(faces.size() == 0) {
-                txt.post(() -> txt.setText(R.string.no_players));
-                return;
-            } else if(faces.size() > 1) {
-                txt.post(() -> txt.setText(R.string.too_many_players));
-                return;
-            }
+        if(faces.size() == 0) {
+            txt.post(() -> txt.setText(R.string.no_players));
+            return;
+        } else if(faces.size() > 1) {
+            txt.post(() -> txt.setText(R.string.too_many_players));
+            return;
         }
 
         target = faces.get(0);
 
-        if(btn != null && txt != null) {
+        String challenger = "Challenger: " + curUserName;
 
-            String challenger = "Challenger: " + curUserName;
+        btn.post(() -> {
+                btn.setVisibility(View.VISIBLE);
 
-            btn.post(() -> {
-                    btn.setVisibility(View.VISIBLE);
+                txt.setText(challenger);
 
-                    txt.setText(challenger);
-
-                    if(lobbyS != null && faces.size() > 0) {
-                        lobbyS.setFace(target);
-                        lobbyS.setChallengerUsername(curUserName);
-                    }
-            });
-        }
+                if(lobbyS != null && faces.size() > 0) {
+                    lobbyS.setFace(target);
+                    lobbyS.setChallengerUsername(curUserName);
+                }
+        });
     }
 
     private static class BluetoothProtocolPayload {
